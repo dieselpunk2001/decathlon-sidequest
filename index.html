@@ -1073,10 +1073,14 @@ document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('de
 document.getElementById('logo').addEventListener('click',()=>go('landing'));
 
 document.querySelectorAll('[data-dlogo]').forEach(el=>{el.outerHTML=dlogo(el.dataset.dlogo)});
+const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',kit:'bg5.jpg',done:'bg6.jpg'};
+const updateBg=()=>document.documentElement.style.setProperty('--bg',`url('${BG_MAP[S.screen]||'bg1.jpg'}')`);
+const origGo=window.go;
+window.go=function(screen){origGo(screen);updateBg()};
+updateBg();
 go('landing');
-   const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',kit:'bg5.jpg',done:'bg6.jpg'};
-const origGo=go;
-go=function(screen){origGo(screen);document.documentElement.style.setProperty('--bg',`url('${BG_MAP[screen]||'bg1.jpg'}')`)};
+   go('landing');
+  
 </script>
 </body>
 </html>
