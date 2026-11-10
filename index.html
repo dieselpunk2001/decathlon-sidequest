@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B1F3A">
+<title>SideQuest | From “someday” to this weekend (student concept for Decathlon)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ==========================================================
+   SIDEQUEST: design notes
+   Idea: a weekend "quest board" made of stickers and tickets.
+   Signature move: chunky navy outlines + hard offset shadows
+   that "press down" when you tap, like physical sticker cards.
+   Palette: ink navy (text/outlines), Decathlon-style blue,
+   lime (go!), sun yellow (warm), fire orange (energy), paper cream.
+   ========================================================== */
+:root{
+  --ink:#0B1F3A; --paper:#FFF6E5; --blue:#0069B4; --sky:#00A3E0;
+  --lime:#C8F54A; --sun:#FFD23F; --fire:#FF6B2C; --pink:#FF9DBB; --white:#fff;
+  --muted:#4A5B73; --bd:3px solid var(--ink); --sh:5px 5px 0 var(--ink);
+  --display:'Bricolage Grotesque','Archivo Black',Impact,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color:var(--ink);background:var(--paper);
+  background-image:radial-gradient(rgba(11,31,58,.09) 1.2px,transparent 1.2px);
+  background-size:22px 22px;line-height:1.5;min-height:100vh;
+  display:flex;flex-direction:column;
+}
+h1,h2,h3,.display{font-family:var(--display);font-weight:800;letter-spacing:-.025em;line-height:1.04}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+img{max-width:100%;display:block}
+:focus-visible{outline:4px solid var(--blue);outline-offset:3px;border-radius:8px}
+h1:focus,h2:focus{outline:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:#fff;padding:.5rem 1rem;border-radius:8px;z-index:100}
+.skip:focus{left:8px}
+
+/* ---------- Nav ---------- */
+.nav{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:var(--bd);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:.7rem clamp(1rem,4vw,2.5rem)}
+.logo{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:800;font-size:1.45rem;letter-spacing:-.03em}
+.logo-mark{display:grid;place-items:center;width:40px;height:40px;background:var(--lime);border:var(--bd);border-radius:12px;
+  box-shadow:3px 3px 0 var(--ink);transform:rotate(-6deg);font-size:1.05rem}
+.nav-right{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:.35rem;border:2px solid var(--ink);border-radius:999px;padding:.2rem .75rem;
+  font-size:.8rem;font-weight:700;background:#fff}
+.pill-lime{background:var(--lime)}
+@media(max-width:620px){.nav-right .pill:first-child{display:none}}
+
+main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:clamp(1.2rem,3vw,2.2rem) clamp(1rem,4vw,2rem) 3rem}
+[data-anim] > *{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+[data-anim] > *:nth-child(2){animation-delay:.07s}[data-anim] > *:nth-child(3){animation-delay:.14s}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem 1.35rem;border:var(--bd);border-radius:999px;
+  font-weight:800;background:#fff;box-shadow:4px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s;text-decoration:none}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
+.btn-lime{background:var(--lime)}.btn-blue{background:var(--blue);color:#fff}.btn-sun{background:var(--sun)}
+.btn-ghost{background:transparent;box-shadow:none;border-width:2px}
+.btn-ghost:hover{box-shadow:none;background:#fff;transform:none}
+.btn-lg{font-size:1.1rem;padding:1rem 1.7rem}
+.link{font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- Landing ---------- */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center;padding:1rem 0 2rem}
+@media(max-width:860px){.hero{grid-template-columns:1fr}}
+.kicker{display:inline-flex;align-items:center;gap:.5rem;font-weight:700;font-size:.9rem;background:#fff;border:2px solid var(--ink);
+  border-radius:999px;padding:.3rem .9rem;margin-bottom:1.1rem}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--fire);box-shadow:0 0 0 4px rgba(255,107,44,.25)}
+.hero h1{font-size:clamp(2.6rem,7vw,5rem);margin-bottom:1.1rem}
+.hl{color:inherit;padding:0 .1em;background:linear-gradient(transparent 58%,var(--lime) 58%)}
+.hl-sun{background:linear-gradient(transparent 58%,var(--sun) 58%)}
+.lede{font-size:1.15rem;max-width:34rem;color:var(--muted);margin-bottom:1.6rem}
+.start{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.start input{flex:1 1 200px;min-width:0;padding:.95rem 1.1rem;border:var(--bd);border-radius:999px;font:inherit;background:#fff;box-shadow:inset 0 -3px 0 rgba(11,31,58,.08)}
+.fine{margin-top:1rem;font-size:.88rem;color:var(--muted)}
+.collage{position:relative;min-height:470px}
+.pol{position:absolute;width:56%;background:#fff;border:var(--bd);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:8px 8px 40px;margin:0}
+.pol .media{aspect-ratio:4/5;border:2px solid var(--ink);border-radius:8px}
+.pol figcaption{position:absolute;bottom:.55rem;left:0;right:0;text-align:center;font-family:var(--display);font-weight:800;font-size:1rem}
+.p1{top:0;left:0;transform:rotate(-6deg)}
+.p2{top:70px;right:0;transform:rotate(5deg)}
+.p3{bottom:0;left:20%;transform:rotate(-2deg);width:50%}
+.stk{position:absolute;z-index:3;display:grid;place-items:center;text-align:center;border:var(--bd);font-family:var(--display);font-weight:800;box-shadow:4px 4px 0 var(--ink)}
+.stk-a{top:-6px;right:12%;width:96px;height:96px;border-radius:50%;background:var(--sun);transform:rotate(10deg);font-size:1.5rem;line-height:1}
+.stk-b{bottom:60px;right:2%;background:var(--lime);border-radius:12px;padding:.4rem .8rem;transform:rotate(-5deg)}
+@media(max-width:860px){.collage{min-height:400px;max-width:460px;margin:0 auto;width:100%}}
+
+.marquee{margin:1rem -100vw;padding:.7rem 0;background:var(--ink);border-block:var(--bd);overflow:hidden;white-space:nowrap}
+.marquee-in{display:inline-block;animation:scroll 38s linear infinite;color:var(--lime);font-family:var(--display);font-weight:800;font-size:1.15rem;text-transform:uppercase;letter-spacing:.02em}
+.marquee-in span{margin:0 1.1rem}.marquee-in b{color:var(--sun)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+.how{margin-top:2.5rem;padding:clamp(1.4rem,4vw,2.6rem);background:var(--blue);color:#fff;border:var(--bd);border-radius:28px;box-shadow:8px 8px 0 var(--ink)}
+.how h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1.4rem}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.how-card{background:#fff;color:var(--ink);border:var(--bd);border-radius:18px;padding:1.1rem;box-shadow:4px 4px 0 var(--ink)}
+.how-card .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);font-weight:800;margin-bottom:.6rem}
+.how-card h3{font-size:1.2rem;margin-bottom:.3rem}.how-card p{font-size:.95rem;color:var(--muted)}
+
+/* ---------- Media (photo with emoji/gradient fallback) ---------- */
+.media{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--g1,#ccc),var(--g2,#999));display:grid;place-items:center}
+.media-emoji{font-size:3.6rem;filter:drop-shadow(3px 3px 0 rgba(11,31,58,.25))}
+.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* ---------- Builder ---------- */
+.crumbs{display:flex;gap:8px;list-style:none;padding:0;margin-bottom:1.4rem;flex-wrap:wrap}
+.crumbs li{border:2px solid var(--ink);border-radius:999px;padding:.2rem .85rem;font-size:.82rem;font-weight:700;background:#fff;opacity:.6}
+.crumbs li.done{background:var(--lime);opacity:1}.crumbs li.cur{background:var(--sun);opacity:1}
+.prog{display:flex;gap:8px;list-style:none;padding:0;margin-bottom:1.6rem}
+.prog li{flex:1;height:14px;border:2px solid var(--ink);border-radius:999px;background:#fff}
+.prog li.done{background:var(--lime)}.prog li.cur{background:var(--sun)}
+.build{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+@media(max-width:900px){.build{grid-template-columns:1fr}}
+.step-no{font-weight:700;color:var(--muted);margin-bottom:.4rem}
+.step h2{font-size:clamp(1.9rem,4.4vw,3rem);margin-bottom:.5rem}
+.step .hint{color:var(--muted);margin-bottom:1.4rem;font-size:1.05rem}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.tile{position:relative;text-align:left;display:flex;flex-direction:column;gap:.15rem;background:#fff;border:var(--bd);border-radius:18px;padding:1rem 1rem 1.05rem;
+  box-shadow:4px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .12s}
+.tile:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.tile .e{font-size:2rem;line-height:1.1;margin-bottom:.2rem}
+.tile .t{font-weight:800;font-size:1.05rem;line-height:1.2}
+.tile .d{font-size:.88rem;color:var(--muted)}
+.tile.on{background:var(--lime);transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.tile.on::after{content:"✓";position:absolute;top:10px;right:12px;font-weight:800;width:24px;height:24px;display:grid;place-items:center;background:var(--ink);color:var(--lime);border-radius:50%;font-size:.85rem}
+.tile.on .d{color:var(--ink)}
+.tile.coins .e{letter-spacing:-.1em}
+
+.meter{display:flex;align-items:flex-end;gap:10px;height:230px;margin-bottom:1rem}
+.bar{flex:1;height:var(--h);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.2rem;padding-top:.55rem;
+  background:#fff;border:var(--bd);border-radius:16px 16px 8px 8px;box-shadow:4px 4px 0 var(--ink);transition:transform .12s,background .15s}
+.bar:hover{transform:translateY(-3px)}
+.bar .n{font-family:var(--display);font-weight:800}
+.bar span:first-child{font-size:1.7rem}
+.bar.fill{background:var(--c)}
+.bar.sel{box-shadow:1px 1px 0 var(--ink);transform:translate(3px,3px)}
+.meter-label{background:#fff;border:var(--bd);border-radius:14px;padding:.8rem 1rem;box-shadow:4px 4px 0 var(--ink);display:inline-block}
+
+.reply{margin-top:1.2rem;background:var(--sun);border:var(--bd);border-radius:18px;padding:1rem 1.2rem;box-shadow:4px 4px 0 var(--ink)}
+.reply b{font-family:var(--display)}
+.reply ul{list-style:none;padding:0;display:grid;gap:.45rem;margin-top:.4rem}
+.reply li::before{content:"➜ ";font-weight:800}
+
+.step-nav{display:flex;justify-content:space-between;gap:12px;margin-top:1.8rem;flex-wrap:wrap}
+
+/* ticket */
+.ticket{position:sticky;top:88px;background:#fff;border:var(--bd);border-radius:20px;box-shadow:var(--sh);padding:1.1rem 1.1rem 1.2rem}
+.ticket::before,.ticket::after{content:"";position:absolute;top:58px;width:24px;height:24px;background:var(--paper);border:var(--bd);border-radius:50%}
+.ticket::before{left:-14px}.ticket::after{right:-14px}
+.ticket h3{font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;padding-bottom:.9rem;margin-bottom:.8rem;border-bottom:3px dashed var(--ink)}
+.trow{display:grid;gap:.15rem;padding:.4rem 0;font-size:.92rem}
+.tk{font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tv{font-weight:700}.tv i{font-weight:400;color:var(--muted)}
+@media(max-width:900px){.ticket{position:static}.ticket::before,.ticket::after{display:none}}
+
+/* ---------- Reveal ---------- */
+.page-head{margin-bottom:1.6rem}
+.page-head h2{font-size:clamp(2rem,5vw,3.4rem);margin-bottom:.4rem}
+.page-head p{color:var(--muted);font-size:1.08rem;max-width:42rem}
+.quests{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:22px}
+.quest{position:relative;display:flex;flex-direction:column;background:#fff;border:var(--bd);border-radius:22px;box-shadow:var(--sh);overflow:hidden}
+.quest .media{aspect-ratio:16/10;border-bottom:var(--bd)}
+.ribbon{position:absolute;top:12px;left:12px;z-index:2;border:var(--bd);border-radius:999px;padding:.2rem .8rem;font-family:var(--display);font-weight:800;font-size:.9rem;
+  transform:rotate(-3deg);box-shadow:3px 3px 0 var(--ink);text-transform:uppercase}
+.r0{background:var(--lime)}.r1{background:var(--sun)}.r2{background:var(--fire);color:#fff}
+.q-body{padding:1.1rem 1.2rem 1.3rem;display:flex;flex-direction:column;gap:.6rem;flex:1}
+.q-tag{font-size:.82rem;font-weight:700;color:var(--muted)}
+.q-body h3{font-size:1.45rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--ink);border-radius:999px;padding:.1rem .65rem;font-size:.8rem;font-weight:700;background:var(--paper)}
+.why-h{font-weight:800;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem}
+.why{list-style:none;padding:0;display:grid;gap:.35rem;font-size:.93rem}
+.why li{padding-left:1.4rem;position:relative}.why li::before{content:"✓";position:absolute;left:0;font-weight:800;color:var(--blue)}
+.q-actions{display:flex;gap:8px;margin-top:auto;padding-top:.8rem;flex-wrap:wrap}
+details.all{margin-top:2rem;background:#fff;border:var(--bd);border-radius:18px;padding:1rem 1.2rem;box-shadow:4px 4px 0 var(--ink)}
+details.all summary{font-weight:800;cursor:pointer;font-family:var(--display);font-size:1.15rem}
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:1rem}
+.mini{display:flex;gap:10px;align-items:center;border:2px solid var(--ink);border-radius:14px;padding:.6rem;background:var(--paper);text-align:left;width:100%;transition:background .12s}
+.mini:hover{background:var(--lime)}
+.mini .e{font-size:1.6rem}.mini b{display:block;font-size:.92rem;line-height:1.2}.mini small{color:var(--muted)}
+
+/* ---------- Plan (ticket) ---------- */
+.plan-ticket{position:relative;background:#fff;border:var(--bd);border-radius:24px;box-shadow:8px 8px 0 var(--ink);overflow:hidden}
+.pt-head{display:grid;grid-template-columns:1fr 240px;border-bottom:3px dashed var(--ink)}
+@media(max-width:760px){.pt-head{grid-template-columns:1fr}}
+.pt-title{padding:1.4rem 1.5rem}
+.pt-title .eyebrow{font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;color:var(--blue)}
+.pt-title h2{font-size:clamp(1.9rem,4.5vw,3rem);margin:.3rem 0 .4rem}
+.pt-title p{color:var(--muted)}
+.pt-head .media{min-height:150px;border-left:var(--bd)}
+@media(max-width:760px){.pt-head .media{border-left:0;border-top:var(--bd);min-height:170px;order:-1}}
+.plan-ticket::before,.plan-ticket::after{content:"";position:absolute;top:calc(var(--notch,200px));width:28px;height:28px;background:var(--paper);border:var(--bd);border-radius:50%;z-index:2}
+.metas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-bottom:var(--bd)}
+.meta{padding:.9rem 1.2rem;border-right:2px solid var(--ink)}.meta:last-child{border-right:0}
+.meta .k{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.meta .v{font-weight:700;font-size:.95rem}
+.timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:1.3rem 1.2rem;background:var(--paper);border-bottom:var(--bd);position:relative}
+.tl{text-align:center;position:relative;padding:0 .4rem}
+.tl::before{content:"";position:absolute;top:19px;left:-50%;width:100%;height:4px;background:var(--ink);z-index:0}
+.tl:first-child::before{display:none}
+.tl .nd{position:relative;z-index:1;display:grid;place-items:center;width:40px;height:40px;margin:0 auto .4rem;border-radius:50%;border:var(--bd);background:#fff;font-size:1.2rem}
+.tl.go .nd{background:var(--lime);transform:scale(1.2);box-shadow:3px 3px 0 var(--ink)}
+.tl b{display:block;font-size:.9rem}.tl small{color:var(--muted);font-size:.82rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.col{padding:1.3rem 1.4rem;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.col:last-child{border-right:0}
+.col h3{font-size:1.2rem;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem}
+.col h3 span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);font-size:.95rem}
+.col:nth-child(1) h3 span{background:var(--sun)}.col:nth-child(2) h3 span{background:var(--lime)}.col:nth-child(3) h3 span{background:var(--pink)}
+.col ol{padding-left:1.2rem;display:grid;gap:.5rem;font-size:.96rem}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0}
+.box{padding:1.2rem 1.4rem;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);font-size:.95rem}
+.box:last-child{border-right:0;border-bottom:0}
+.box h4{font-family:var(--display);font-size:1.1rem;margin-bottom:.4rem}
+.box p+p{margin-top:.5rem}
+.flag{display:inline-block;background:var(--sun);border:2px solid var(--ink);border-radius:999px;font-size:.7rem;font-weight:800;padding:0 .5rem;margin-left:.3rem;vertical-align:middle}
+.box.first{background:#EAF7FF}.box.safe{background:#FFF1EA}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:1.6rem}
+
+/* ---------- Kit ---------- */
+.kit{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}
+@media(max-width:920px){.kit{grid-template-columns:1fr}}
+.lean{display:flex;gap:.7rem;align-items:center;background:var(--lime);border:var(--bd);border-radius:16px;padding:.8rem 1rem;margin-bottom:1.2rem;box-shadow:4px 4px 0 var(--ink);flex-wrap:wrap}
+.lean p{flex:1;min-width:200px;font-size:.93rem}
+.group-h{font-family:var(--display);font-size:1.2rem;margin:1.4rem 0 .7rem}
+.items{display:grid;gap:12px}
+.item{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;background:#fff;border:var(--bd);border-radius:18px;padding:.9rem 1rem;box-shadow:4px 4px 0 var(--ink);transition:background .15s}
+.item.s-have{background:#EAF9C7}.item.s-later{background:#F3EFE6}
+.item .em{font-size:2rem;grid-row:span 2}
+.item .nm{font-weight:800;line-height:1.2}.item .nm small{display:block;font-weight:400;color:var(--muted);font-size:.85rem}
+.item .row2{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.price{font-weight:800;font-size:.92rem}.price.off{text-decoration:line-through;color:var(--muted);font-weight:500}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff}
+.seg button{padding:.3rem .8rem;font-size:.82rem;font-weight:700;border-right:2px solid var(--ink)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.rent{display:inline-block;background:var(--sky);color:#fff;font-size:.7rem;font-weight:800;padding:0 .5rem;border-radius:999px;margin-left:.3rem;vertical-align:middle}
+.summary{position:sticky;top:88px;background:#fff;border:var(--bd);border-radius:20px;box-shadow:var(--sh);padding:1.2rem}
+@media(max-width:920px){.summary{position:static}}
+.summary h3{font-size:1.3rem;margin-bottom:.6rem}
+.sum-row{display:flex;justify-content:space-between;gap:10px;padding:.45rem 0;border-bottom:2px dashed rgba(11,31,58,.25);font-size:.95rem}
+.sum-row.big{font-size:1.3rem;font-family:var(--display);font-weight:800;border-bottom:0;padding-top:.8rem}
+.gauge{height:16px;border:2px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden;margin:.7rem 0 .3rem}
+.gauge i{display:block;height:100%;background:var(--lime);transition:width .3s}
+.gauge i.over{background:var(--fire)}
+.note{font-size:.82rem;color:var(--muted);margin-top:.7rem}
+.demo-tag{display:inline-block;background:var(--ink);color:var(--lime);font-size:.72rem;font-weight:800;border-radius:6px;padding:.1rem .45rem;letter-spacing:.04em}
+
+/* ---------- Done ---------- */
+.done{text-align:center;max-width:640px;margin:1rem auto}
+.done .big{font-size:5rem;animation:pop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:none}}
+.done h2{font-size:clamp(2.2rem,6vw,3.6rem);margin:.4rem 0 .8rem}
+.done .lede{margin:0 auto 1.4rem}
+.receipt{text-align:left;background:#fff;border:var(--bd);border-radius:18px;box-shadow:var(--sh);padding:1.1rem 1.3rem;margin:1.2rem 0}
+.receipt h3{font-size:1.1rem;padding-bottom:.6rem;border-bottom:3px dashed var(--ink);margin-bottom:.5rem}
+.confetti span{position:fixed;top:-24px;width:10px;height:16px;z-index:60;animation:fall 3.4s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* ---------- Footer / toast ---------- */
+footer{background:var(--ink);color:#DCE6F5;padding:1.6rem clamp(1rem,4vw,2.5rem);font-size:.85rem;margin-top:2rem}
+footer b{color:var(--lime)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);background:var(--ink);color:#fff;border:2px solid var(--lime);padding:.7rem 1.2rem;border-radius:999px;font-weight:700;z-index:80;transition:transform .3s;max-width:92vw}
+.toast.show{transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .confetti{display:none}
+}
+@media print{
+  .nav,.crumbs,.actions,footer,.confetti,.toast{display:none!important}
+  body{background:#fff}.plan-ticket{box-shadow:none}
+}
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <button class="logo" id="logo" aria-label="SideQuest home"><span class="logo-mark" aria-hidden="true">SQ</span><span>SideQuest</span></button>
+  <div class="nav-right">
+    <span class="pill">Decathlon India · student concept</span>
+    <span class="pill pill-lime">📍 Bangalore pilot</span>
+  </div>
+</header>
+
+<main id="main"><div id="app"></div></main>
+
+<footer>
+  <p><b>Student academic prototype only.</b> Not affiliated with, endorsed by, or sponsored by Decathlon. No real purchases, payments, bookings or customer-data collection occur on this site; nothing you enter is stored or sent anywhere. Prices are <b>prototype estimates only</b>. Photos are royalty-free stock images used for illustration. All trademarks belong to their respective owners.</p>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:2rem">SideQuest needs JavaScript to run. Please enable it and reload.</p></noscript>
+
+<script>
+/* ==========================================================
+   1. IMAGE CONFIG: swap any URL here (or use "assets/xyz.jpg").
+   If an image fails to load, the card falls back to its
+   gradient + emoji automatically, so nothing ever looks broken.
+   ========================================================== */
+const U = id => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=70`;
+const IMAGES = {
+  cubbon:    U('photo-1476480862126-209bfaa8edc8'),
+  nandi:     U('photo-1541625602330-2277a4c46182'),
+  lake:      U('photo-1439066615861-d1af74d74000'),
+  badminton: U('photo-1626224583764-f87db24ac4ea'),
+  football:  U('photo-1574629810360-7efbbe195018'),
+  climbing:  U('photo-1522163182402-834f871fd851'),
+  swimming:  U('photo-1530549387789-4c1017266635'),
+  tabletennis: U('photo-1609710228159-0fa9bd7c0827'),
+  run:       U('photo-1552674605-db6ffd4facb5'),
+  yoga:      U('photo-1544367567-0f2fcb009e0b')
+};
+
+/* ==========================================================
+   2. DATA: the 10 Bangalore quests
+   energy:[min,max] fit on the 1–5 meter · cost:[low,high] demo ₹ per person
+   gear: 1 (almost nothing) … 3 (needs proper kit)
+   ========================================================== */
+const ACTS = [
+{id:'cubbon',name:'Cubbon Park Reset Walk/Run',emoji:'🌳',cat:'fresh',grad:['#C8F54A','#2FB36B'],
+ blurb:'A gentle loop under big trees. Walk, jog a little, repeat. No pressure.',
+ scenes:['fresh','fitness'],energy:[1,3],times:['sat-sunrise','sun-morning','sat-evening','sun-evening'],avoid:[],
+ company:['solo','friend','partner','group','family'],cost:[0,200],gear:1,beginner:true,soloOk:true,weatherProof:false,
+ dur:'60–90 min',level:'Easy',where:'Cubbon Park, central Bangalore. Check gate timings and any vehicle-free hours first.',
+ before:['Pick your start time and tell one person you are going.','Lay out comfy shoes, a tee and a bottle the night before.','Choose a loop: one long lap or two short ones.'],
+ during:['Walk the first 10 minutes to warm up.','Try 1 minute of easy jogging, then 2 minutes of walking. Repeat 4–6 times.','Stop for water and a stretch whenever you like.'],
+ after:['Stretch calves and hamstrings for 3 minutes.','Rate it 1–10. Would you do it again next weekend?'],
+ rain:'Swap to a 30-minute indoor walk (mall or home) plus a living-room stretch.',
+ solo:'Earphones, a playlist or a podcast. It works better alone than you think.',
+ first:'Minutes 0–10: easy walk. 10–30: jog/walk intervals. 30–45: cool-down walk.',
+ safety:'Avoid midday heat, carry water and stay on busy, well-lit paths.',
+ kit:[['walkshoes','e'],['tee','e'],['bottle','e'],['cap','o'],['socks','o']]},
+
+{id:'nandi',name:'Nandi Hills Sunrise Cycle/Trek Lite',emoji:'🚴',cat:'fresh',grad:['#FFD23F','#FF6B2C'],unusual:true,long:true,
+ blurb:'Chase the sunrise on a hill outside the city. Cycle the easy stretches, walk the steep ones.',
+ scenes:['fresh','unusual','group','fitness'],energy:[3,5],times:['sat-sunrise','sun-morning','full'],avoid:['sat-afternoon','sat-evening','sun-evening'],
+ company:['friend','partner','group'],cost:[500,1800],gear:3,beginner:false,soloOk:false,weatherProof:false,
+ dur:'Half day (4–6 hrs incl. travel)',level:'Moderate',where:'Nandi Hills, a day trip from Bangalore. Check entry timings, parking and road conditions before you go.',
+ before:['Check entry timings, parking and road conditions. Early starts are the norm.','Decide: ride a hired or own bicycle on the easy stretches, or walk the trail sections.','Pack water, snacks, a windcheater and a power bank.'],
+ during:['Start early for the cool hours and the sunrise.','Keep a pace where you can still chat.','Walk the steep bits. Pushing the bike counts!'],
+ after:['Refuel with a proper breakfast.','Rest, then do an easy walk on the next day.'],
+ rain:'Postpone to a dry weekend and use your Easy Backup quest this time.',
+ solo:'Best with company. Join a group ride or trek, or choose your Easy Backup instead.',
+ first:'Minutes 0–20: gentle warm-up walk. Then ride/walk in 20-minute blocks with a 5-minute break each time.',
+ safety:'Wear a helmet, tell someone your plan, and turn back if mist or rain makes the route slippery.',
+ kit:[['helmet','e'],['bottle','e'],['bag','e'],['tee','e'],['windcheater','o'],['gloves','o'],['cap','o']]},
+
+{id:'lake',name:'Lake Loop Walk + Stretch Session',emoji:'🏞️',cat:'fresh',grad:['#7FDBFF','#0069B4'],
+ blurb:'A slow loop, a few stretches and a bench with a view.',
+ scenes:['fresh','fitness'],energy:[1,2],times:['sat-sunrise','sun-morning','sat-evening','sun-evening'],avoid:[],
+ company:['solo','friend','partner','family','group'],cost:[0,150],gear:1,beginner:true,soloOk:true,weatherProof:false,
+ dur:'45–75 min',level:'Very easy',where:'Any lake loop near you, such as Ulsoor Lake or Sankey Tank. Check timings and entry rules.',
+ before:['Pick a lake close to home so the trip is short.','Pack water and a light layer.','Choose a stretch routine: 5 moves, 30 seconds each.'],
+ during:['Stroll one loop at a comfortable pace.','Pause at a bench for your stretch routine.','Walk a second loop if you still feel good.'],
+ after:['Take a photo of the view as your reward.','Decide if this becomes a weekly ritual.'],
+ rain:'Do the stretch routine indoors and walk the loop another day.',
+ solo:'Bring a podcast, notice the birds and enjoy the quiet.',
+ first:'Minutes 0–5: slow walk. 5–35: one full loop. 35–45: stretch on a bench.',
+ safety:'Stay on marked paths, watch your footing near water and avoid the loop after dark.',
+ kit:[['walkshoes','e'],['bottle','e'],['tee','o'],['cap','o'],['mat','o']]},
+
+{id:'badminton',name:'Badminton Comeback Session',emoji:'🏸',cat:'urban',grad:['#FF9DBB','#FF6B2C'],
+ blurb:'Dust off the racket. Rally with a friend, laugh at the misses, repeat.',
+ scenes:['indoor','group','learn','fitness'],energy:[2,4],times:['sat-afternoon','sat-evening','sun-evening','sun-morning'],avoid:[],
+ company:['friend','partner','group','family'],cost:[200,700],gear:2,beginner:true,soloOk:false,weatherProof:true,
+ dur:'60 min',level:'Easy to moderate',where:'A club or public court near you in Bangalore. Check booking rules and hourly rates.',
+ before:['Message your partner and lock a time. Court slots fill up fast.','Find a nearby court with hourly booking and ask the rate.','Pack racket, shuttles, court shoes and water.'],
+ during:['Warm up 5 minutes: shoulder circles, a light jog, gentle swings.','Rally cooperatively first and just keep the shuttle alive.','Then play to 11 with rest breaks every few points.'],
+ after:['Stretch shoulders and calves.','Book the same slot next week while the energy is high.'],
+ rain:'Courts are indoors, so you are mostly safe. Just plan extra travel time.',
+ solo:'Book a drop-in or coaching session, or do solo shuttle drills against a wall.',
+ first:'Minutes 0–10: warm-up and gentle hitting. 10–35: cooperative rallies. 35–60: friendly games to 11.',
+ safety:'Wear proper court shoes, warm up your shoulders and take water breaks.',
+ kit:[['racket','e'],['courtshoes','e'],['shuttles','e'],['bottle','e'],['tee','o']]},
+
+{id:'football',name:'Turf Football 5-a-side',emoji:'⚽',cat:'urban',grad:['#2FB36B','#0B1F3A'],
+ blurb:'Turf, a few friends, two short halves. Instant team energy.',
+ scenes:['group','fitness','fresh'],energy:[3,5],times:['sat-evening','sun-evening','sun-morning'],avoid:['sat-sunrise'],
+ company:['group','friend'],cost:[200,600],gear:2,beginner:true,soloOk:false,weatherProof:false,
+ dur:'60–90 min',level:'Moderate',where:'A 5-a-side turf in Bangalore, booked by the hour. Check rates and cancellation rules.',
+ before:['Gather 6–10 people. 3v3 works if you are short.','Book a turf slot directly with the venue or through a booking app.','Pick teams in advance. Mixed skill levels are fine.'],
+ during:['Jog and do dynamic stretches for 8 minutes.','Play two 15-minute halves with a water break.','Rotate goalkeepers so everyone gets a turn.'],
+ after:['Walk it off and stretch hamstrings and quads.','Post a group photo and lock next week’s slot.'],
+ rain:'Ask the turf about its rain policy and keep a covered court as Plan B.',
+ solo:'Join a pickup group or drop-in session, or kick a ball around a park.',
+ first:'Minutes 0–10: warm-up. 10–35: first half. 35–45: break. 45–70: second half.',
+ safety:'Wear shin guards, hydrate often and skip peak afternoon heat.',
+ kit:[['footshoes','e'],['shin','e'],['bottle','e'],['jersey','o'],['socks','o']]},
+
+{id:'climbing',name:'Indoor Climbing Starter',emoji:'🧗',cat:'urban',grad:['#9B5DE5','#00A3E0'],unusual:true,
+ blurb:'Learn to read a wall and trust your feet. A puzzle you get to sweat through.',
+ scenes:['indoor','unusual','learn','fitness'],energy:[2,5],times:['sat-afternoon','sat-evening','sun-evening','sun-morning'],avoid:[],
+ company:['solo','friend','partner','group'],cost:[600,1500],gear:1,beginner:true,soloOk:true,weatherProof:true,
+ dur:'90 min',level:'Moderate',where:'A beginner-friendly indoor climbing gym in Bangalore. Check intro-session options and shoe rental.',
+ before:['Look for a gym with a beginner intro or bouldering (no ropes).','Book an intro slot and confirm shoe rental.','Wear stretchy clothes you can move in.'],
+ during:['Do the safety briefing and warm-up.','Start on the easiest problems. Learn to place your feet, not just pull.','Rest between climbs. Forearms tire fast.'],
+ after:['Stretch forearms and shoulders.','Note which move felt hardest and try it again next time.'],
+ rain:'It is indoors, so rain is only a travel problem.',
+ solo:'Climbing gyms are social. Staff and regulars often help beginners.',
+ first:'Minutes 0–15: briefing and warm-up. 15–60: easy climbs with rests. 60–75: stretch.',
+ safety:'Follow staff instructions, learn how to fall and never skip the warm-up.',
+ kit:[['stretchpants','e'],['tee','e'],['bottle','e'],['climbshoes','o']]},
+
+{id:'swimming',name:'Swimming Starter Session',emoji:'🏊',cat:'skill',grad:['#00A3E0','#0069B4'],
+ blurb:'Easy pace, cool water and your own lane. A reset for body and mind.',
+ scenes:['fitness','learn','fresh'],energy:[2,4],times:['sat-sunrise','sun-morning','sat-afternoon','sat-evening'],avoid:[],
+ company:['solo','friend','partner','family'],cost:[100,600],gear:2,beginner:true,soloOk:true,weatherProof:true,
+ dur:'45–60 min',level:'Easy to moderate',where:'A public or club pool with a lifeguard on duty. Check session timings and entry rules.',
+ before:['Pick a pool with a lifeguard and check beginner or lap timings.','Pack swimsuit, goggles, cap and a towel.','Eat lightly 1–2 hours before.'],
+ during:['Spend 5 minutes getting comfortable in the shallow end.','Practise floating and gentle kicking (use a board if the pool has them).','Swim short lengths with rests at the wall.'],
+ after:['Shower, rehydrate and stretch your shoulders.','Decide whether you want a lesson next time.'],
+ rain:'Light rain is fine for swimming. Skip it if there is lightning and check the pool is open.',
+ solo:'Choose a busy session with a lifeguard on duty and tell someone you are going.',
+ first:'Minutes 0–10: shallow-end comfort. 10–30: kicks and floating. 30–45: short lengths with rests.',
+ safety:'Choose a pool with a lifeguard, stay within your depth and do not swim alone if you are a first-timer.',
+ kit:[['swimsuit','e'],['goggles','e'],['swimcap','e'],['towel','e'],['bottle','o']]},
+
+{id:'tabletennis',name:'Table Tennis Rally Challenge',emoji:'🏓',cat:'skill',grad:['#FF6B2C','#FFD23F'],
+ blurb:'Quick rallies, simple rules and plenty of laughing. Perfect for casual company.',
+ scenes:['indoor','group','learn'],energy:[1,3],times:['sat-afternoon','sat-evening','sun-evening'],avoid:[],
+ company:['friend','partner','group','family'],cost:[100,400],gear:1,beginner:true,soloOk:false,weatherProof:true,
+ dur:'45–60 min',level:'Easy',where:'A club, community hall or café table in Bangalore. Check booking and hourly rates.',
+ before:['Ask a friend and find a nearby table. Many clubs rent by the hour.','Ask if paddles and balls are included.','Wear light clothes and flat shoes.'],
+ during:['Hit gentle forehands. Aim for 20 rallies in a row.','Learn one basic serve.','Play first to 11 with winner-stays rotation.'],
+ after:['Stretch wrists and shoulders.','Set a rally record to beat next time.'],
+ rain:'It is indoors, so little affected by weather.',
+ solo:'Practise serves, or use the table as a wall for rebound drills.',
+ first:'Minutes 0–10: gentle hitting. 10–25: rally goals. 25–45: games to 11.',
+ safety:'Clear stray balls from the floor and warm up your wrists.',
+ kit:[['tee','e'],['bottle','e'],['paddle','o'],['ttballs','o'],['courtshoes','o']]},
+
+{id:'run',name:'3K Beginner Run Challenge',emoji:'🏃',cat:'fitness',grad:['#00A3E0','#C8F54A'],
+ blurb:'Run–walk your first 3K and finish with a result you can feel proud of.',
+ scenes:['fitness','fresh'],energy:[2,4],times:['sat-sunrise','sun-morning','sun-evening','sat-evening'],avoid:[],
+ company:['solo','friend','partner','group'],cost:[0,200],gear:2,beginner:true,soloOk:true,weatherProof:false,
+ dur:'35–50 min',level:'Easy to moderate',where:'Any safe, well-lit route near home. A park or a quiet loop works well.',
+ before:['Pick a 3 km route and mark the halfway point.','Set out shoes and a tee the night before.','Set two alarms. Morning-you will say thanks.'],
+ during:['Walk 5 minutes to warm up.','Run 1 minute, walk 1 minute. Repeat until you reach 3 km.','Keep the pace conversational and finish with a slow walk.'],
+ after:['Note your time. Do not judge it, just record it.','Plan a second try in 3 days.'],
+ rain:'Use a treadmill, or swap to a 20-minute indoor workout video.',
+ solo:'Use a running app with audio coaching for company.',
+ first:'Minutes 0–5: walk. 5–35: 1 min run / 1 min walk. 35–40: cool-down walk.',
+ safety:'Walk whenever you need to, keep volume low near traffic and stay hydrated.',
+ kit:[['runshoes','e'],['tee','e'],['shorts','e'],['bottle','e'],['socks','o'],['cap','o']]},
+
+{id:'yoga',name:'Yoga + Mobility Morning',emoji:'🧘',cat:'fitness',grad:['#FF9DBB','#FFD23F'],
+ blurb:'Slow stretches, deep breaths and a calm start to the day.',
+ scenes:['fitness','fresh','indoor','learn'],energy:[1,2],times:['sat-sunrise','sun-morning','sun-evening'],avoid:[],
+ company:['solo','friend','partner','family','group'],cost:[0,400],gear:1,beginner:true,soloOk:true,weatherProof:true,
+ dur:'30–45 min',level:'Very easy',where:'At home, in a park or at a local studio. A free guided video is a great start.',
+ before:['Clear a floor space about 2 m by 1 m.','Pick a beginner-friendly 30-minute guided session.','Put your phone on Do Not Disturb.'],
+ during:['Start with 5 minutes of breathing and gentle neck and shoulder rolls.','Flow through cat-cow, downward dog and child’s pose.','End with 3 minutes lying still.'],
+ after:['Sip water and notice how your body feels.','Try 10 minutes on a weekday morning.'],
+ rain:'Do it indoors. This is a rain-proof quest.',
+ solo:'This one is easy alone. A guided video works as your teacher.',
+ first:'Minutes 0–5: breathing. 5–25: gentle flow. 25–30: rest.',
+ safety:'Never push into pain and skip deep stretches on cold muscles.',
+ kit:[['mat','e'],['yogapants','e'],['bottle','o'],['band','o'],['towel','o']]}
+];
+
+/* Kit library. Prices are PROTOTYPE ESTIMATES only (₹) */
+const ITEMS = {
+ walkshoes:{n:'Cushioned walking shoes',e:'👟',p:1299,w:'Comfort for long loops'},
+ tee:{n:'Quick-dry T-shirt',e:'👕',p:399,w:'Stays light when you sweat'},
+ bottle:{n:'Hydration bottle',e:'🧴',p:299,w:'Sip often, not just when thirsty'},
+ cap:{n:'Sun cap',e:'🧢',p:249,w:'Shade for your face'},
+ socks:{n:'Sport socks (pack of 3)',e:'🧦',p:299,w:'Fewer blisters'},
+ bag:{n:'Small day backpack',e:'🎒',p:799,w:'Carries water, snacks and a layer'},
+ shorts:{n:'Breathable shorts / track pants',e:'🩳',p:499,w:'Move freely'},
+ runshoes:{n:'Beginner running shoes',e:'👟',p:1799,w:'Cushioning for impact'},
+ helmet:{n:'Cycling helmet',e:'⛑️',p:999,w:'Non-negotiable on a bike'},
+ gloves:{n:'Cycling gloves',e:'🧤',p:349,w:'Grip and comfort on long rides'},
+ windcheater:{n:'Light windcheater',e:'🧥',p:699,w:'Hill mornings run cool'},
+ racket:{n:'Beginner badminton racket',e:'🏸',p:599,w:'Light and forgiving'},
+ shuttles:{n:'Shuttlecocks (pack)',e:'🪶',p:249,w:'You will lose a few'},
+ courtshoes:{n:'Non-marking court shoes',e:'👟',p:1299,w:'Grip on indoor floors'},
+ footshoes:{n:'Turf football shoes',e:'⚽',p:999,w:'Studs made for turf'},
+ shin:{n:'Shin guards',e:'🦵',p:349,w:'Protection from stray boots'},
+ jersey:{n:'Team-colour jersey',e:'🎽',p:399,w:'Makes it feel like a match'},
+ stretchpants:{n:'Stretchy activewear pants',e:'👖',p:599,w:'Freedom for high steps'},
+ climbshoes:{n:'Climbing shoes',e:'🧗',p:1999,w:'Rent first. Buy only if you love it',rent:true},
+ swimsuit:{n:'Swimsuit / swim shorts',e:'🩱',p:599,w:'Quick-dry and secure'},
+ goggles:{n:'Swim goggles',e:'🥽',p:399,w:'See clearly, no stinging'},
+ swimcap:{n:'Swim cap',e:'🏊',p:249,w:'Often required at pools'},
+ towel:{n:'Quick-dry towel',e:'🧖',p:349,w:'Packs small, dries fast'},
+ paddle:{n:'Table tennis paddle',e:'🏓',p:499,w:'Most venues lend one. Borrow first',rent:true},
+ ttballs:{n:'Table tennis balls (pack)',e:'⚪',p:149,w:'Always handy'},
+ mat:{n:'Yoga mat',e:'🧘',p:699,w:'Cushion and grip'},
+ band:{n:'Resistance band',e:'➰',p:349,w:'Adds easy mobility work'},
+ yogapants:{n:'Stretch leggings',e:'👖',p:499,w:'Comfortable in every pose'}
+};
+
+/* ==========================================================
+   3. STEPS (the "mission builder")
+   ========================================================== */
+const STEPS = [
+ {key:'window',name:'When',icon:'🗓',title:'When does your weekend have room?',hint:'Pick the window you can actually protect.',opts:[
+   {v:'sat-sunrise',e:'🌅',t:'Saturday sunrise',d:'Cool air, quiet roads'},
+   {v:'sat-afternoon',e:'☀️',t:'Saturday afternoon',d:'Plenty of daylight'},
+   {v:'sat-evening',e:'🌇',t:'Saturday evening',d:'After the day settles'},
+   {v:'sun-morning',e:'🌤️',t:'Sunday morning',d:'The classic reset'},
+   {v:'sun-evening',e:'🌆',t:'Sunday evening',d:'Close the weekend strong'},
+   {v:'full',e:'🗓️',t:'The whole weekend',d:'Go big across two days'}]},
+ {key:'energy',name:'Energy',icon:'⚡',type:'meter',num:true,title:'How much energy are you bringing?',hint:'Tap a bar. Be honest. Nobody is judging.',opts:[
+   {v:1,e:'🛋️',t:'Couch, but curious',d:'Gentle is perfectly fine'},
+   {v:2,e:'🚶',t:'Light movement sounds nice',d:'Easy and relaxed'},
+   {v:3,e:'💦',t:'I want a proper sweat',d:'Get the heart going'},
+   {v:4,e:'⚡',t:'Give me a challenge',d:'Push a little'},
+   {v:5,e:'🔥',t:'Adventure mode',d:'Bring on the big stuff'}]},
+ {key:'vibes',name:'Vibe',icon:'🎯',multi:true,title:'What kind of weekend vibe?',hint:'Pick up to two.',opts:[
+   {v:'fresh',e:'🌿',t:'Fresh air',d:'Sky above, no ceiling'},
+   {v:'indoor',e:'🏟️',t:'Indoor court',d:'Weather-proof fun'},
+   {v:'group',e:'👯',t:'Friendly competition',d:'Games with other people'},
+   {v:'learn',e:'🧠',t:'Learn something new',d:'Pick up a fresh skill'},
+   {v:'fitness',e:'💪',t:'Fitness reset',d:'Reboot the routine'},
+   {v:'unusual',e:'🎲',t:'Something unusual',d:'Not your usual weekend'}]},
+ {key:'blockers',name:'Blockers',icon:'🚧',multi:true,optional:true,title:'What usually stops you?',hint:'Tap anything that sounds familiar (up to two). SideQuest actually changes your plan for it.',opts:[
+   {v:'gear',e:'🎒',t:'I have no gear',d:'Nothing in the cupboard'},
+   {v:'start',e:'🧭',t:'I wouldn’t know where to start',d:'First-timer nerves'},
+   {v:'friends',e:'📵',t:'My friends will cancel',d:'The group chat always flakes'},
+   {v:'budget',e:'💸',t:'I don’t want to spend much',d:'Keep it light on the wallet'},
+   {v:'fit',e:'😮‍💨',t:'I’m not fit enough yet',d:'Worried about keeping up'},
+   {v:'weather',e:'🌧️',t:'Weather might ruin it',d:'Rain, heat, plans change'},
+   {v:'options',e:'🌀',t:'Too many options',d:'Analysis paralysis'}]},
+ {key:'company',name:'Crew',icon:'👥',title:'Who’s coming along?',hint:'We will keep the plan realistic for your crew.',opts:[
+   {v:'solo',g:'solo',e:'🧍',t:'Just me',d:'Solo missions are great'},
+   {v:'friend',g:'friend',e:'🧑‍🤝‍🧑',t:'Me + one friend',d:'The classic duo'},
+   {v:'partner',g:'partner',e:'💞',t:'Me + partner',d:'Date, but active'},
+   {v:'college',g:'group',e:'🎓',t:'College gang',d:'Squad energy'},
+   {v:'office',g:'group',e:'💼',t:'Office crew',d:'Team building, minus the slides'},
+   {v:'family',g:'family',e:'👨‍👩‍👧',t:'Family',d:'All ages welcome'}]},
+ {key:'budget',name:'Budget',icon:'🪙',num:true,coins:true,title:'Your weekend budget?',hint:'Roughly what you would spend in total, including any gear. Less is totally fine.',opts:[
+   {v:500,e:'🪙',t:'Up to ₹500',d:'Lean and scrappy'},
+   {v:1500,e:'🪙🪙',t:'₹500 – ₹1,500',d:'Comfortable'},
+   {v:3000,e:'🪙🪙🪙',t:'₹1,500 – ₹3,000',d:'Room to kit up'},
+   {v:99999,e:'🪙🪙🪙🪙',t:'₹3,000 +',d:'Go for it'}]}
+];
+const BLOCK_REPLY = {
+ gear:'Gear-light quests get priority, and anything you can rent or borrow first is flagged.',
+ start:'You will get a minute-by-minute first-timer script for your quest.',
+ friends:'Your plan includes a solo fallback in case the group cancels.',
+ budget:'Activity cost stays separate from gear, and you will see what to skip.',
+ fit:'Gentle first sessions with built-in breaks move to the top.',
+ weather:'Rain-proof quests rank higher, and your plan gets a weather Plan B.',
+ options:'You only ever see three picks. No endless scrolling.'
+};
+const METER_COLORS=['#C8F54A','#E3F25B','#FFD23F','#FF9F43','#FF6B2C'];
+const VIBE_LABEL={fresh:'fresh-air',indoor:'indoor',group:'friendly-competition',learn:'learn-something-new',fitness:'fitness-reset',unusual:'something-unusual'};
+const CO_LABEL={solo:'a solo outing',friend:'you plus a friend',partner:'you plus a partner',group:'a group',family:'family'};
+const WIN={
+ 'sat-sunrise':{title:'Saturday',day:'Saturday sunrise',prep:'Friday night',after:'Sunday'},
+ 'sat-afternoon':{title:'Saturday',day:'Saturday afternoon',prep:'Friday night',after:'Sunday'},
+ 'sat-evening':{title:'Saturday',day:'Saturday evening',prep:'Friday night',after:'Sunday'},
+ 'sun-morning':{title:'Sunday',day:'Sunday morning',prep:'Saturday',after:'Monday'},
+ 'sun-evening':{title:'Sunday',day:'Sunday evening',prep:'Saturday',after:'Monday'},
+ 'full':{title:'Weekend',day:'Saturday + Sunday',prep:'Friday night',after:'Monday'}
+};
+
+/* ==========================================================
+   4. STATE + helpers
+   ========================================================== */
+const S={screen:'landing',step:0,name:'',a:{window:null,energy:null,vibes:[],blockers:[],company:null,budget:null},
+  ranking:[],picks:[],hist:[new Set(),new Set(),new Set()],chosen:null,kit:{},lean:true,allOpen:false};
+const $app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>'₹'+Number(n).toLocaleString('en-IN');
+const stepOf=k=>STEPS.find(s=>s.key===k);
+const optOf=(k,v)=>stepOf(k).opts.find(o=>o.v===v);
+const LOG=[]; // in-memory only: handy for the demo (open the console). Never stored or sent.
+const track=(e,d={})=>{LOG.push({t:new Date().toISOString(),e,...d});};
+
+function media(act){
+  const src=IMAGES[act.id];
+  return `<div class="media" style="--g1:${act.grad[0]};--g2:${act.grad[1]}"><span class="media-emoji" aria-hidden="true">${act.emoji}</span>${src?`<img src="${src}" alt="${esc(act.name)} (illustrative photo)" loading="lazy" onerror="this.remove()">`:''}</div>`;
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
+
+/* ==========================================================
+   5. RECOMMENDATION ENGINE (simple, explainable scoring)
+   ========================================================== */
+function groupKey(){return optOf('company',S.a.company).g}
+function score(act){
+  const A=S.a,b=A.blockers,why=[];let s=0;
+  // vibe
+  const vm=act.scenes.filter(x=>A.vibes.includes(x));
+  s+=vm.length*3; if(vm.length) why.push(`Matches your ${vm.map(v=>VIBE_LABEL[v]).join(' + ')} vibe`);
+  // energy
+  const [lo,hi]=act.energy,e=A.energy;
+  if(e>=lo&&e<=hi){s+=3;why.push(`Right energy for “${optOf('energy',e).t}”`)} else s-=(e<lo?lo-e:e-hi)*2;
+  // time
+  if(A.window==='full'){s+=1;if(act.long){s+=2;why.push('Uses your whole weekend well')}}
+  else if(act.times.includes(A.window)){s+=2;why.push(`Works well for ${optOf('window',A.window).t.toLowerCase()}`)}
+  if(act.avoid.includes(A.window)) s-=8;
+  // company
+  const g=groupKey();
+  if(act.company.includes(g)){s+=3;why.push(`Good for ${CO_LABEL[g]}`)} else s-=4;
+  if(g==='solo'&&!act.soloOk) s-=4;
+  // budget
+  const cap=A.budget;
+  if(act.cost[0]>cap) s-=6; else if(act.cost[1]<=cap){s+=2;why.push('Activity cost stays within your budget')}
+  // blockers
+  if(b.includes('gear')){s+=(3-act.gear)*1.5; if(act.gear<=1) why.push('Needs very little gear to begin')}
+  if(b.includes('start')&&act.beginner){s+=2;why.push('Beginner-friendly first session')}
+  if(b.includes('friends')){ if(act.soloOk){s+=3;why.push('Still works if your friends cancel')} else s-=1 }
+  if(b.includes('budget')){ s+=act.cost[1]<=500?3:act.cost[1]<=1000?1:-2; if(act.cost[1]<=500) why.push('Very low spend') }
+  if(b.includes('fit')){ if(act.energy[0]<=2){s+=2;why.push('Gentle enough for a first go')} else s-=2 }
+  if(b.includes('weather')){ if(act.weatherProof){s+=3;why.push('Weather will not cancel it')} else s-=2 }
+  return {act,score:s,why};
+}
+const barrier=a=>(a.soloOk?2:0)+(3-a.gear)+(a.cost[1]<=300?3:a.cost[1]<=700?1:0)+(a.beginner?1:0);
+const wildBonus=(a,best)=>(a.cat!==best.cat?4:0)+(a.unusual?3:0);
+function buildPicks(){
+  const ranked=ACTS.map(score).sort((x,y)=>y.score-x.score);
+  S.ranking=ranked;S.hist=[new Set(),new Set(),new Set()];
+  const best=ranked[0],rest=ranked.slice(1);
+  const easy=[...rest].sort((x,y)=>(y.score+barrier(y.act))-(x.score+barrier(x.act)))[0];
+  const rest2=rest.filter(r=>r!==easy);
+  const wild=[...rest2].sort((x,y)=>(y.score+wildBonus(y.act,best.act))-(x.score+wildBonus(x.act,best.act)))[0];
+  S.picks=[best,easy,wild];
+  track('reveal',{picks:S.picks.map(p=>p.act.id)});
+}
+function swap(i){
+  const taken=new Set(S.picks.map(p=>p.act.id));
+  let cand=S.ranking.filter(r=>!taken.has(r.act.id)&&!S.hist[i].has(r.act.id));
+  if(!cand.length){S.hist[i].clear();cand=S.ranking.filter(r=>!taken.has(r.act.id))}
+  const key=i===1?r=>r.score+barrier(r.act):i===2?r=>r.score+wildBonus(r.act,S.picks[0].act):r=>r.score;
+  cand.sort((x,y)=>key(y)-key(x));
+  S.hist[i].add(S.picks[i].act.id);S.picks[i]=cand[0];track('swap',{slot:i,to:cand[0].act.id});
+}
+function buildPlan(act){
+  const b=S.a.blockers;const P={before:[...act.before],during:[...act.during],after:[...act.after]};
+  if(b.includes('fit')) P.during.unshift('Take a 1-minute breather every 10 minutes. Stop while you still feel good.');
+  if(S.a.window==='full') P.after.push('Day two: repeat a lighter version, or try your Easy Backup quest.');
+  return P;
+}
+
+/* ==========================================================
+   6. VIEWS
+   ========================================================== */
+const crumbs=i=>`<ol class="crumbs" aria-label="Progress">${['Build','Reveal','Plan','Kit'].map((c,k)=>`<li class="${k<i?'done':k===i?'cur':''}">${k<i?'✓ ':''}${c}</li>`).join('')}</ol>`;
+
+function vLanding(){
+  const pol=(cls,id,cap)=>{const a=ACTS.find(x=>x.id===id);return `<figure class="pol ${cls}">${media(a)}<figcaption>${cap}</figcaption></figure>`};
+  const names=ACTS.map(a=>`<span>${a.emoji} ${a.name.split(' ').slice(0,3).join(' ')}</span><span><b>✦</b></span>`).join('');
+  return `
+  <section class="hero" aria-labelledby="h">
+    <div>
+      <p class="kicker"><span class="dot"></span> 48 hours · 10 quests · 1 city</p>
+      <h1 id="h" tabindex="-1">From <mark class="hl">“someday”</mark> to <mark class="hl hl-sun">this weekend.</mark></h1>
+      <p class="lede">Tell SideQuest how your weekend feels. It builds a ready-to-go sport plan for Bangalore, with the first session mapped out and only the gear you actually need.</p>
+      <form class="start" data-form="start">
+        <label for="nm" class="sr">Your first name (optional)</label>
+        <input id="nm" name="nm" maxlength="20" placeholder="Your first name (optional)" autocomplete="off" value="${esc(S.name)}">
+        <button class="btn btn-lime btn-lg" type="submit">Start your SideQuest <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="fine">⏱ About 2 minutes · No sign-up · Nothing is saved or sent</p>
+    </div>
+    <div class="collage" aria-hidden="true">
+      ${pol('p1','badminton','Badminton comeback')}
+      ${pol('p2','nandi','Sunrise ride')}
+      ${pol('p3','swimming','First laps')}
+      <div class="stk stk-a">48<br>HRS</div>
+      <div class="stk stk-b">📍 Bangalore</div>
+    </div>
+  </section>
+  <div class="marquee" aria-hidden="true"><div class="marquee-in">${names}${names}</div></div>
+  <section class="how" aria-labelledby="hh">
+    <h2 id="hh">How a SideQuest works</h2>
+    <div class="how-grid">
+      <div class="how-card"><span class="n">1</span><h3>Build your weekend</h3><p>Six quick, playful picks: your window, energy, vibe, blockers, crew and budget.</p></div>
+      <div class="how-card"><span class="n">2</span><h3>Meet 3 quests</h3><p>A Best Match, an Easy Backup and a Wildcard, each with the reasons it fits.</p></div>
+      <div class="how-card"><span class="n">3</span><h3>Get the 48-hour plan</h3><p>Before, during and after, plus a Plan B for weather or a flaky crew.</p></div>
+      <div class="how-card"><span class="n">4</span><h3>Pack light</h3><p>Mark what you already own. Only buy what you truly need to start.</p></div>
+    </div>
+  </section>`;
+}
+
+function ticketRows(){
+  const A=S.a,val=(k,v)=>{const o=optOf(k,v);return o?`${o.e} ${esc(o.t)}`:null};
+  const list=(k,arr)=>arr.length?arr.map(v=>val(k,v)).join('<br>'):null;
+  const rows=[['window',val('window',A.window)],['energy',val('energy',A.energy)],['vibes',list('vibes',A.vibes)],['blockers',list('blockers',A.blockers)],['company',val('company',A.company)],['budget',val('budget',A.budget)]];
+  return rows.map(([k,v])=>{const st=stepOf(k);return `<div class="trow"><span class="tk">${st.icon} ${st.name}</span><span class="tv">${v||'<i>not picked yet</i>'}</span></div>`}).join('');
+}
+function valid(st){const v=S.a[st.key];if(st.optional)return true;return st.multi?v.length>0:v!==null}
+
+function vBuild(){
+  const st=STEPS[S.step],n=STEPS.length,A=S.a;
+  let body='';
+  if(st.type==='meter'){
+    const cur=A.energy?optOf('energy',A.energy):null;
+    body=`<div class="meter" role="radiogroup" aria-label="Energy level">${st.opts.map((o,i)=>`<button type="button" role="radio" aria-checked="${A.energy===o.v}" aria-label="Level ${o.v}: ${esc(o.t)}" class="bar${A.energy>=o.v&&A.energy!==null?' fill':''}${A.energy===o.v?' sel':''}" style="--h:${40+i*15}%;--c:${METER_COLORS[i]}" data-action="pick" data-key="energy" data-v="${o.v}"><span aria-hidden="true">${o.e}</span><span class="n" aria-hidden="true">${o.v}</span></button>`).join('')}</div>
+    <p class="meter-label" aria-live="polite">${cur?`<b>${cur.e} ${esc(cur.t)}</b> · ${esc(cur.d)}`:'Tap a bar to set your level'}</p>`;
+  } else {
+    body=`<div class="tiles" role="group" aria-label="${esc(st.title)}">${st.opts.map(o=>{
+      const on=st.multi?A[st.key].includes(o.v):A[st.key]===o.v;
+      return `<button type="button" class="tile${on?' on':''}${st.coins?' coins':''}" aria-pressed="${on}" data-action="pick" data-key="${st.key}" data-v="${o.v}"><span class="e" aria-hidden="true">${o.e}</span><span class="t">${esc(o.t)}</span><span class="d">${esc(o.d)}</span></button>`}).join('')}</div>`;
+  }
+  if(st.key==='blockers'){
+    body+=`<div class="reply" aria-live="polite">${A.blockers.length?`<b>SideQuest’s answer:</b><ul>${A.blockers.map(v=>`<li>${esc(BLOCK_REPLY[v])}</li>`).join('')}</ul>`:`<b>No blockers?</b> Lucky you. Skip ahead, or tap anything that sounds familiar and watch the plan adapt.`}</div>`;
+  }
+  const last=S.step===n-1;
+  return `
+  ${crumbs(0)}
+  <ol class="prog" aria-label="Step ${S.step+1} of ${n}">${STEPS.map((_,i)=>`<li class="${i<S.step?'done':i===S.step?'cur':''}"></li>`).join('')}</ol>
+  <div class="build">
+    <section class="step">
+      <p class="step-no">Step ${S.step+1} of ${n}</p>
+      <h2 tabindex="-1">${esc(st.title)}</h2>
+      <p class="hint">${esc(st.hint)}</p>
+      ${body}
+      <div class="step-nav">
+        <button class="btn btn-ghost" data-action="back">← Back</button>
+        <button class="btn ${last?'btn-lime btn-lg':'btn-blue'}" data-action="next" ${valid(st)?'':'disabled'}>${last?'Reveal my SideQuests ✨':(st.optional&&!A[st.key].length?'Skip →':'Next →')}</button>
+      </div>
+    </section>
+    <aside class="ticket" aria-label="Your weekend so far"><h3>🎟 Your weekend so far</h3>${ticketRows()}</aside>
+  </div>`;
+}
+
+function questCard(p,i){
+  const a=p.act,tags=['Closest to everything you told us','Lowest effort to say yes to','A different flavour for the curious'];
+  const why=(p.why.length?p.why:['A solid all-round fit for your answers']).slice(0,3);
+  return `<article class="quest">
+    <span class="ribbon r${i}">${['Best match','Easy backup','Wildcard quest'][i]}</span>
+    ${media(a)}
+    <div class="q-body">
+      <p class="q-tag">${tags[i]}</p>
+      <h3>${esc(a.name)}</h3>
+      <p>${esc(a.blurb)}</p>
+      <div class="chips"><span class="chip">⏱ ${esc(a.dur)}</span><span class="chip">💰 ${inr(a.cost[0])}–${inr(a.cost[1])}</span><span class="chip">${esc(a.level)}</span></div>
+      <p class="why-h">Why it fits</p>
+      <ul class="why">${why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>
+      <div class="q-actions">
+        <button class="btn btn-lime" data-action="choose" data-id="${a.id}">Choose this quest</button>
+        <button class="btn btn-ghost" data-action="swap" data-i="${i}" aria-label="Swap ${esc(a.name)} for another quest">↻ Swap</button>
+      </div>
+    </div></article>`;
+}
+function vReveal(){
+  return `${crumbs(1)}
+  <div class="page-head"><h2 tabindex="-1">${S.name?esc(S.name)+', y':'Y'}our three SideQuests</h2>
+  <p>Built from your answers. Pick one to unlock your 48-hour plan, or swap any card for a different quest.</p></div>
+  <div class="quests">${S.picks.map(questCard).join('')}</div>
+  <details class="all" ${S.allOpen?'open':''}><summary>Browse all 10 Bangalore quests</summary>
+    <div class="mini-grid">${ACTS.map(a=>`<button class="mini" data-action="choose" data-id="${a.id}"><span class="e" aria-hidden="true">${a.emoji}</span><span><b>${esc(a.name)}</b><small>${esc(a.dur)} · ${inr(a.cost[0])}–${inr(a.cost[1])}</small></span></button>`).join('')}</div>
+  </details>
+  <div class="step-nav"><button class="btn btn-ghost" data-action="editanswers">← Change my answers</button></div>`;
+}
+
+function vPlan(){
+  const act=S.chosen,P=buildPlan(act),w=WIN[S.a.window],b=S.a.blockers,who=S.name?`${esc(S.name)}’s `:'';
+  const title=`${who}${w.title} SideQuest`;
+  const flag=k=>b.includes(k)?'<span class="flag">You flagged this</span>':'';
+  const ol=arr=>`<ol>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`;
+  return `${crumbs(2)}
+  <article class="plan-ticket" aria-labelledby="pt">
+    <div class="pt-head">
+      <div class="pt-title"><p class="eyebrow">Your 48-hour plan · ${esc(w.day)}</p><h2 id="pt" tabindex="-1">${title}</h2>
+        <p><b>${act.emoji} ${esc(act.name)}</b>. ${esc(act.blurb)}</p></div>
+      ${media(act)}
+    </div>
+    <div class="metas">
+      <div class="meta"><div class="k">When</div><div class="v">${esc(w.day)}</div></div>
+      <div class="meta"><div class="k">Duration</div><div class="v">${esc(act.dur)}</div></div>
+      <div class="meta"><div class="k">Level</div><div class="v">${esc(act.level)}</div></div>
+      <div class="meta"><div class="k">Activity cost</div><div class="v">${inr(act.cost[0])}–${inr(act.cost[1])} <span class="demo-tag">DEMO</span></div></div>
+    </div>
+    <div class="timeline" aria-label="48-hour timeline">
+      <div class="tl"><span class="nd" aria-hidden="true">🎒</span><b>${esc(w.prep)}</b><small>Prep &amp; confirm</small></div>
+      <div class="tl go"><span class="nd" aria-hidden="true">${act.emoji}</span><b>${esc(w.day)}</b><small>Quest time</small></div>
+      <div class="tl"><span class="nd" aria-hidden="true">🌟</span><b>${esc(w.after)}</b><small>Reflect &amp; repeat?</small></div>
+    </div>
+    <div class="cols">
+      <div class="col"><h3><span>1</span>Before</h3>${ol(P.before)}</div>
+      <div class="col"><h3><span>2</span>During</h3>${ol(P.during)}</div>
+      <div class="col"><h3><span>3</span>After</h3>${ol(P.after)}</div>
+    </div>
+    <div class="boxes">
+      <div class="box"><h4>📍 Where</h4><p>${esc(act.where)}</p></div>
+      ${b.includes('start')?`<div class="box first"><h4>🧭 Your first-timer script ${flag('start')}</h4><p>${esc(act.first)}</p></div>`:''}
+      <div class="box"><h4>🅱️ Plan B</h4><p><b>Weather</b> ${flag('weather')}<br>${esc(act.rain)}</p><p><b>If company cancels</b> ${flag('friends')}<br>${esc(act.solo)}</p></div>
+      <div class="box safe"><h4>🛟 Stay safe</h4><p>${esc(act.safety)}</p></div>
+      ${b.includes('budget')?`<div class="box"><h4>💸 Keep it cheap ${flag('budget')}</h4><p>Your activity costs about ${inr(act.cost[0])}–${inr(act.cost[1])}. Gear is separate, so mark what you already own in the next step.</p></div>`:''}
+    </div>
+  </article>
+  <div class="actions">
+    <button class="btn btn-lime btn-lg" data-action="tokit">Pack my kit →</button>
+    <button class="btn btn-sun" data-action="share">📣 Invite a friend</button>
+    <button class="btn" data-action="print">💾 Save my plan</button>
+    <button class="btn btn-ghost" data-action="backreveal">↻ Change my quest</button>
+  </div>`;
+}
+
+function kitTotals(){let need=0,have=0,nN=0,nH=0;S.chosen.kit.forEach(([id])=>{const s=S.kit[id],p=ITEMS[id].p;if(s==='need'){need+=p;nN++}if(s==='have'){have+=p;nH++}});return{need,have,nN,nH}}
+function itemRow(id){
+  const it=ITEMS[id],s=S.kit[id];
+  return `<div class="item s-${s}"><span class="em" aria-hidden="true">${it.e}</span>
+    <div class="nm">${esc(it.n)}${it.rent?'<span class="rent">TRY RENTING FIRST</span>':''}<small>${esc(it.w)}</small></div>
+    <div class="row2"><div class="seg" role="group" aria-label="Status for ${esc(it.n)}">
+      ${[['have','Have it'],['need','Need it'],['later','Later']].map(([v,l])=>`<button type="button" aria-pressed="${s===v}" data-action="kitset" data-id="${id}" data-v="${v}">${l}</button>`).join('')}
+    </div><span class="price${s==='need'?'':' off'}">${inr(it.p)} <span class="demo-tag">EST</span></span></div></div>`;
+}
+function vKit(){
+  const act=S.chosen,T=kitTotals(),cap=S.a.budget,all=cap>=99999;
+  const total=act.cost[1]+T.need,pct=all?Math.min(100,Math.round(total/5000*100)):Math.min(100,Math.round(total/cap*100)),over=!all&&total>cap;
+  const ess=act.kit.filter(k=>k[1]==='e').map(k=>k[0]),opt=act.kit.filter(k=>k[1]==='o').map(k=>k[0]);
+  return `${crumbs(3)}
+  <div class="page-head"><h2 tabindex="-1">Pack your ${esc(act.name.split(' ')[0])} kit</h2>
+  <p>Start with less. Mark what you already own and only keep what you truly need for your first try.</p></div>
+  <div class="kit">
+    <section>
+      <div class="lean"><button class="btn ${S.lean?'btn-blue':''}" data-action="lean" aria-pressed="${S.lean}">${S.lean?'✓ Starting lean':'Start lean'}</button>
+        <p><b>Start lean</b> moves every optional item to “Later”, so you begin with essentials only.</p></div>
+      <h3 class="group-h">Essentials</h3><div class="items">${ess.map(itemRow).join('')}</div>
+      ${opt.length?`<h3 class="group-h">Nice to have (optional)</h3><div class="items">${opt.map(itemRow).join('')}</div>`:''}
+    </section>
+    <aside class="summary" aria-label="Kit summary">
+      <h3>🧳 Your kit</h3>
+      <div class="sum-row"><span>Already own</span><b>${T.nH} item${T.nH===1?'':'s'}</b></div>
+      <div class="sum-row"><span>Still needed</span><b>${T.nN} item${T.nN===1?'':'s'}</b></div>
+      <div class="sum-row"><span>Saved by using what you own</span><b>${inr(T.have)}</b></div>
+      <div class="sum-row"><span>Activity (high estimate)</span><b>${inr(act.cost[1])}</b></div>
+      <div class="sum-row big"><span>Demo total</span><span>${inr(total)}</span></div>
+      <div class="gauge" role="img" aria-label="${pct}% of budget"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
+      <p class="note">${all?'No budget cap set.':over?`A little over your ${inr(cap)} budget. Try moving something to “Later” or “Have it”.`:`Within your ${inr(cap)} budget. Nice.`}</p>
+      <div class="actions" style="margin-top:1rem"><button class="btn btn-lime btn-lg" data-action="kitdone" style="width:100%">Complete demo kit</button></div>
+      <p class="note"><span class="demo-tag">PROTOTYPE</span> Estimates only. No real order, payment or booking happens here.</p>
+    </aside>
+  </div>
+  <div class="step-nav"><button class="btn btn-ghost" data-action="toplan">← Back to my plan</button></div>`;
+}
+
+function vDone(){
+  const act=S.chosen,T=kitTotals(),w=WIN[S.a.window];
+  const needs=act.kit.filter(([id])=>S.kit[id]==='need').map(([id])=>ITEMS[id]);
+  const cols=['#C8F54A','#FFD23F','#FF6B2C','#00A3E0','#FF9DBB'];
+  const conf=Array.from({length:36},()=>`<span style="left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*5)]};animation-delay:${(Math.random()*1.2).toFixed(2)}s;transform:rotate(${Math.floor(Math.random()*360)}deg)"></span>`).join('');
+  return `<div class="confetti" aria-hidden="true">${conf}</div>${crumbs(4)}
+  <section class="done">
+    <div class="big" aria-hidden="true">🎉</div>
+    <h2 tabindex="-1">Demo kit created!</h2>
+    <p class="lede"><b>No real order, payment or booking has been placed.</b> This is a student prototype. In a real Decathlon journey, this step would hand off to product pages or store pickup.</p>
+    <div class="receipt">
+      <h3>${act.emoji} ${esc(act.name)} · ${esc(w.day)}</h3>
+      <div class="sum-row"><span>Items to get</span><b>${T.nN}</b></div>
+      ${needs.map(i=>`<div class="sum-row"><span>${i.e} ${esc(i.n)}</span><span>${inr(i.p)}</span></div>`).join('')||'<div class="sum-row"><span>Nothing to buy. You already have it all!</span></div>'}
+      <div class="sum-row"><span>Already own (saved)</span><b>${inr(T.have)}</b></div>
+      <div class="sum-row big"><span>Demo kit total</span><span>${inr(T.need)}</span></div>
+    </div>
+    <div class="actions" style="justify-content:center">
+      <button class="btn btn-sun" data-action="share">📣 Invite a friend</button>
+      <button class="btn" data-action="print">💾 Save my plan</button>
+      <button class="btn btn-ghost" data-action="toplan">← Back to my plan</button>
+      <button class="btn btn-lime" data-action="restart">🔁 Start a new SideQuest</button>
+    </div>
+    <p class="note" style="margin-top:1.4rem">“I’m trading one hour of scrolling for this. Joining?”</p>
+  </section>`;
+}
+const VIEWS={landing:vLanding,build:vBuild,reveal:vReveal,plan:vPlan,kit:vKit,done:vDone};
+
+/* ==========================================================
+   7. RENDER + NAVIGATION
+   ========================================================== */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function focusKey(el){return el&&el.dataset&&el.dataset.action?[el.dataset.action,el.dataset.key||'',el.dataset.v||'',el.dataset.i||'',el.dataset.id||''].join('|'):null}
+function draw(){ // in-place re-render that keeps keyboard focus
+  const k=focusKey(document.activeElement);
+  $app.removeAttribute('data-anim');$app.innerHTML=VIEWS[S.screen]();
+  if(k){for(const el of $app.querySelectorAll('[data-action]')){if(focusKey(el)===k){el.focus({preventScroll:true});break}}}
+}
+function go(screen){
+  S.screen=screen;$app.setAttribute('data-anim','1');$app.innerHTML=VIEWS[screen]();
+  window.scrollTo({top:0,behavior:reduce?'auto':'smooth'});
+  const h=$app.querySelector('h1,h2');if(h)h.focus({preventScroll:true});
+}
+function initKit(){
+  S.kit={};S.chosen.kit.forEach(([id,t])=>{S.kit[id]=t==='e'?'need':'later'});S.lean=true;
+}
+async function share(){
+  const act=S.chosen,w=WIN[S.a.window];
+  const text=`I’m trading one hour of scrolling for ${act.name} this ${w.title.toLowerCase()}. Joining me? 🏃 (SideQuest: a student concept for Decathlon)`;
+  try{
+    if(navigator.share){await navigator.share({title:'SideQuest',text});return}
+    await navigator.clipboard.writeText(text);toast('Invite copied. Paste it into your group chat!');
+  }catch(err){ if(err&&err.name==='AbortError')return; toast('Copy this invite: '+text) }
+}
+
+$app.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action]');if(!t)return;
+  const a=t.dataset.action,A=S.a;
+  switch(a){
+    case 'pick':{
+      const st=stepOf(t.dataset.key),v=st.num?Number(t.dataset.v):t.dataset.v;
+      if(st.multi){const arr=A[st.key],i=arr.indexOf(v);if(i>-1)arr.splice(i,1);else{arr.push(v);if(arr.length>2)arr.shift()}}
+      else A[st.key]=v;
+      track('pick',{key:st.key,v});draw();break}
+    case 'next':
+      if(S.step<STEPS.length-1){S.step++;go('build')}
+      else{buildPicks();go('reveal')}
+      break;
+    case 'back':
+      if(S.step>0){S.step--;go('build')}else go('landing');break;
+    case 'editanswers':S.step=0;go('build');break;
+    case 'swap':swap(Number(t.dataset.i));draw();break;
+    case 'choose':S.chosen=ACTS.find(x=>x.id===t.dataset.id);initKit();track('choose',{id:S.chosen.id});go('plan');break;
+    case 'backreveal':go('reveal');break;
+    case 'tokit':go('kit');break;
+    case 'toplan':go('plan');break;
+    case 'kitset':S.kit[t.dataset.id]=t.dataset.v;draw();break;
+    case 'lean':S.lean=!S.lean;S.chosen.kit.forEach(([id,tier])=>{if(tier==='o')S.kit[id]=S.lean?'later':'need'});draw();break;
+    case 'kitdone':track('demo_kit_complete',{need:kitTotals().need});go('done');break;
+    case 'share':share();break;
+    case 'print':window.print();break;
+    case 'restart':
+      S.step=0;S.a={window:null,energy:null,vibes:[],blockers:[],company:null,budget:null};S.chosen=null;S.picks=[];go('landing');break;
+  }
+});
+$app.addEventListener('submit',e=>{
+  if(e.target.dataset.form==='start'){e.preventDefault();S.name=(new FormData(e.target).get('nm')||'').trim();track('start');S.step=0;go('build')}
+});
+document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.all'))S.allOpen=e.target.open},true);
+document.getElementById('logo').addEventListener('click',()=>go('landing'));
+
+go('landing');
+</script>
+</body>
+</html>
