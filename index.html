@@ -13,28 +13,19 @@
 <style>
 /* ==========================================================
    HEADLINE FONT: "All The Way To The Sun"
-   Put your font file in the repo at:  assets/fonts/
-   and name it exactly:  all-the-way-to-the-sun.ttf  (or .otf / .woff / .woff2)
-   If it looks too small/large, change size-adjust below (e.g. 110% or 90%).
+   Looks in ROOT and assets/ for maximum compatibility
    ========================================================== */
 @font-face{
   font-family:'All The Way To The Sun';
-  src:url('assets/fonts/all-the-way-to-the-sun.woff2') format('woff2'),
-      url('assets/fonts/all-the-way-to-the-sun.woff') format('woff'),
+  src:url('all-the-way-to-the-sun.otf') format('opentype'),
+      url('all-the-way-to-the-sun.ttf') format('truetype'),
+      url('all-the-way-to-the-sun.woff2') format('woff2'),
       url('assets/fonts/all-the-way-to-the-sun.otf') format('opentype'),
       url('assets/fonts/all-the-way-to-the-sun.ttf') format('truetype');
   font-weight:100 900;font-style:normal;font-display:swap;
   size-adjust:100%;
 }
 
-/* ==========================================================
-   SIDEQUEST: design notes
-   Idea: a weekend "quest board" made of stickers and tickets.
-   Signature move: chunky navy outlines + hard offset shadows
-   that "press down" when you tap, like physical sticker cards.
-   Palette: ink navy, Decathlon-style blue, lime, sun yellow,
-   fire orange, paper cream.
-   ========================================================== */
 :root{
   --ink:#0B1F3A; --paper:#FFF6E5; --blue:#0069B4; --sky:#00A3E0;
   --lime:#C8F54A; --sun:#FFD23F; --fire:#FF6B2C; --pink:#FF9DBB; --white:#fff;
@@ -49,8 +40,8 @@ body{
   background-image:radial-gradient(rgba(11,31,58,.09) 1.2px,transparent 1.2px);
   background-size:22px 22px;line-height:1.5;min-height:100vh;
   display:flex;flex-direction:column;
-  overflow-x:hidden;            /* stops the full-bleed marquee causing sideways scroll */
-  font-synthesis:none;          /* no fake-bold on the custom headline font */
+  overflow-x:hidden;
+  font-synthesis:none;
 }
 h1,h2,h3,.display{font-family:var(--display);font-weight:800;letter-spacing:.01em;line-height:1.1}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
@@ -61,13 +52,13 @@ h1:focus,h2:focus{outline:none}
 .skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:#fff;padding:.5rem 1rem;border-radius:8px;z-index:100}
 .skip:focus{left:8px}
 
-/* ---------- Decathlon logo chip (always on white so it stays legible) ---------- */
+/* ---------- Decathlon logo chip ---------- */
 .dlogo{display:inline-flex;align-items:center;justify-content:center;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:.3rem .65rem;line-height:1;flex:none}
 .dlogo img{display:block;height:26px;width:auto;max-width:170px;object-fit:contain}
 .dlogo.sm img{height:20px}
 .dlogo.lg img{height:34px}
 .dl-text{display:none;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:.08em;color:var(--blue);font-size:.8rem}
-.dlogo.nologo .dl-text{display:inline}   /* shown only if the logo file is missing */
+.dlogo.nologo .dl-text{display:inline}
 
 /* ---------- Nav ---------- */
 .nav{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:var(--bd);
@@ -116,7 +107,6 @@ main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:clamp(1.2rem,3vw,2
 .fine{margin-top:1rem;font-size:.88rem;color:var(--muted)}
 .lockup{display:flex;align-items:center;gap:.7rem;margin-top:1.1rem;font-weight:700;font-size:.9rem;flex-wrap:wrap}
 
-/* Collage: fixed aspect ratio, everything placed in % so nothing overlaps or gets cut at any width */
 .collage{position:relative;width:100%;max-width:520px;margin:0 auto 1.2rem;aspect-ratio:1/1.12}
 .pol{position:absolute;width:50%;background:#fff;border:var(--bd);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:3% 3% 0;margin:0}
 .pol .media{aspect-ratio:4/5;border:2px solid var(--ink);border-radius:8px}
@@ -140,7 +130,7 @@ main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:clamp(1.2rem,3vw,2
 .how-card .n{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);font-weight:800;margin-bottom:.6rem}
 .how-card h3{font-size:1.3rem;margin-bottom:.3rem}.how-card p{font-size:.95rem;color:var(--muted)}
 
-/* ---------- Media (photo with emoji/gradient fallback) ---------- */
+/* ---------- Media ---------- */
 .media{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--g1,#ccc),var(--g2,#999));display:grid;place-items:center}
 .media-emoji{font-size:3.6rem;filter:drop-shadow(3px 3px 0 rgba(11,31,58,.25))}
 .media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -161,7 +151,7 @@ main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:clamp(1.2rem,3vw,2
 .tile{position:relative;text-align:left;display:flex;flex-direction:column;gap:.15rem;background:#fff;border:var(--bd);border-radius:18px;padding:1rem 1rem 1.05rem;
   box-shadow:4px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .12s}
 .tile:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
-.tile .e{font-size:2rem;line-height:1.2;margin-bottom:.2rem;padding-right:34px}   /* padding keeps emoji clear of the tick badge */
+.tile .e{font-size:2rem;line-height:1.2;margin-bottom:.2rem;padding-right:34px}
 .tile .t{font-weight:800;font-size:1.05rem;line-height:1.2}
 .tile .d{font-size:.88rem;color:var(--muted)}
 .tile.on{background:var(--lime);transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
@@ -185,7 +175,6 @@ main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:clamp(1.2rem,3vw,2
 .reply li::before{content:"➜ ";font-weight:800}
 .step-nav{display:flex;justify-content:space-between;gap:12px;margin-top:1.8rem;flex-wrap:wrap}
 
-/* "weekend so far" card (plain card, no side notches) */
 .ticket{position:sticky;top:88px;background:#fff;border:var(--bd);border-radius:20px;box-shadow:var(--sh);padding:1.1rem 1.2rem 1.2rem}
 .ticket h3{font-size:1.2rem;padding-bottom:.8rem;margin-bottom:.7rem;border-bottom:3px dashed var(--ink)}
 .trow{display:grid;gap:.15rem;padding:.4rem 0;font-size:.92rem}
@@ -219,7 +208,7 @@ details.all summary{font-weight:800;cursor:pointer;font-family:var(--display);fo
 .mini:hover{background:var(--lime)}
 .mini .e{font-size:1.6rem}.mini b{display:block;font-size:.92rem;line-height:1.2}.mini small{color:var(--muted)}
 
-/* ---------- Plan (ticket) ---------- */
+/* ---------- Plan ---------- */
 .plan-ticket{position:relative;background:#fff;border:var(--bd);border-radius:24px;box-shadow:8px 8px 0 var(--ink);overflow:hidden}
 .pt-banner{position:relative;border-bottom:var(--bd)}
 .pt-banner .media{aspect-ratio:21/9;min-height:190px}
@@ -304,7 +293,7 @@ details.all summary{font-weight:800;cursor:pointer;font-family:var(--display);fo
 .confetti span{position:fixed;top:-24px;width:10px;height:16px;z-index:60;animation:fall 3.4s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 
-/* ---------- Footer (disclaimer lives here) / toast ---------- */
+/* ---------- Footer ---------- */
 footer{background:var(--ink);color:#DCE6F5;padding:1.8rem clamp(1rem,4vw,2.5rem);font-size:.85rem;margin-top:2rem;border-top:var(--bd)}
 .foot-in{max-width:1180px;margin:0 auto;display:flex;gap:1.4rem;align-items:flex-start;flex-wrap:wrap}
 .foot-brand{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-size:1.5rem;color:#fff}
@@ -359,37 +348,44 @@ footer b{color:var(--lime)}
 
 <script>
 /* ==========================================================
-   0. LOGO: file lives at assets/decathlon-logo.png
-   If the file is missing, a text wordmark appears instead.
+   LOGO: Checks decathlon-seeklogo.png in ROOT first, 
+   then assets/decathlon-logo.png, then text fallback.
    ========================================================== */
-const LOGO='assets/decathlon-logo.png';
-const dlogo=(cls='')=>`<span class="dlogo ${cls}"><img src="${LOGO}" alt="Decathlon logo" onerror="this.parentNode.classList.add('nologo');this.remove()"><span class="dl-text">DECATHLON</span></span>`;
+function onLogoError(img) {
+  if (img.dataset.triedAlt !== '1') {
+    img.dataset.triedAlt = '1';
+    img.src = 'decathlon-seeklogo.png';
+  } else if (img.dataset.triedRoot !== '1') {
+    img.dataset.triedRoot = '1';
+    img.src = 'decathlon-logo.png';
+  } else {
+    img.parentNode.classList.add('nologo');
+    img.remove();
+  }
+}
+
+const dlogo=(cls='')=>`<span class="dlogo ${cls}"><img src="decathlon-seeklogo.png" alt="Decathlon logo" onerror="onLogoError(this)"><span class="dl-text">DECATHLON</span></span>`;
 
 /* ==========================================================
-   1. IMAGE CONFIG
-   Each quest tries its LOCAL file first (assets/…), then the REMOTE link,
-   then falls back to the gradient + emoji. So you can upload your own
-   photos with these exact names and they take over automatically.
+   IMAGE CONFIG: Checks Root -> assets/ -> Remote Unsplash
    ========================================================== */
 const U=(id,w=1200)=>`https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
 const IMG={
-  cubbon:     {local:'assets/cubbon.jpg',      remote:U('photo-1476480862126-209bfaa8edc8')},
-  nandi:      {local:'assets/nandi.jpg',       remote:U('photo-1541625602330-2277a4c46182')},
-  lake:       {local:'assets/lake.jpg',        remote:U('photo-1439066615861-d1af74d74000')},
-  badminton:  {local:'assets/badminton.jpg',   remote:U('photo-1626224583764-f87db24ac4ea')},
-  football:   {local:'assets/football.jpg',    remote:U('photo-1574629810360-7efbbe195018')},
-  climbing:   {local:'assets/climbing.jpg',    remote:U('photo-1522163182402-834f871fd851')},
-  swimming:   {local:'assets/swimming.jpg',    remote:U('photo-1530549387789-4c1017266635')},
-  tabletennis:{local:'assets/tabletennis.jpg', remote:U('photo-1609710228159-0fa9bd7c0827')},
-  run:        {local:'assets/run.jpg',         remote:U('photo-1552674605-db6ffd4facb5')},
-  yoga:       {local:'assets/yoga.jpg',        remote:U('photo-1544367567-0f2fcb009e0b')}
+  cubbon:     {local:'cubbon.jpg',      remote:U('photo-1476480862126-209bfaa8edc8')},
+  nandi:      {local:'nandi.jpg',       remote:U('photo-1541625602330-2277a4c46182')},
+  lake:       {local:'lake.jpg',        remote:U('photo-1439066615861-d1af74d74000')},
+  badminton:  {local:'badminton.jpg',   remote:U('photo-1626224583764-f87db24ac4ea')},
+  football:   {local:'football.jpg',    remote:U('photo-1574629810360-7efbbe195018')},
+  climbing:   {local:'climbing.jpg',    remote:U('photo-1522163182402-834f871fd851')},
+  swimming:   {local:'swimming.jpg',    remote:U('photo-1530549387789-4c1017266635')},
+  tabletennis:{local:'tabletennis.jpg', remote:U('photo-1609710228159-0fa9bd7c0827')},
+  run:        {local:'run.jpg',         remote:U('photo-1552674605-db6ffd4facb5')},
+  yoga:       {local:'yoga.jpg',        remote:U('photo-1544367567-0f2fcb009e0b')}
 };
 function imgFail(el){const n=el.dataset.alt;if(n){el.dataset.alt='';el.src=n}else el.remove()}
 
 /* ==========================================================
-   2. DATA: the 10 Bangalore quests
-   energy:[min,max] fit on the 1–5 meter · cost:[low,high] demo ₹ per person
-   gear: 1 (almost nothing) … 3 (needs proper kit)
+   DATA
    ========================================================== */
 const ACTS = [
 {id:'cubbon',name:'Cubbon Park Reset Walk/Run',emoji:'🌳',cat:'fresh',grad:['#C8F54A','#2FB36B'],
@@ -533,7 +529,6 @@ const ACTS = [
  kit:[['mat','e'],['yogapants','e'],['bottle','o'],['band','o'],['towel','o']]}
 ];
 
-/* Kit library. Prices are PROTOTYPE ESTIMATES only (₹) */
 const ITEMS = {
  walkshoes:{n:'Cushioned walking shoes',e:'👟',p:1299,w:'Comfort for long loops'},
  tee:{n:'Quick-dry T-shirt',e:'👕',p:399,w:'Stays light when you sweat'},
@@ -565,9 +560,6 @@ const ITEMS = {
  yogapants:{n:'Stretch leggings',e:'👖',p:499,w:'Comfortable in every pose'}
 };
 
-/* ==========================================================
-   3. STEPS (the "mission builder")
-   ========================================================== */
 const STEPS = [
  {key:'window',name:'When',icon:'🗓',title:'When does your weekend have room?',hint:'Pick the window you can actually protect.',opts:[
    {v:'sat-sunrise',e:'🌅',t:'Saturday sunrise',d:'Cool air, quiet roads'},
@@ -631,9 +623,6 @@ const WIN={
  'full':{title:'Weekend',day:'Saturday + Sunday',prep:'Friday night',after:'Monday'}
 };
 
-/* ==========================================================
-   4. STATE + helpers
-   ========================================================== */
 const S={screen:'landing',step:0,name:'',a:{window:null,energy:null,vibes:[],blockers:[],company:null,budget:null},
   ranking:[],picks:[],hist:[new Set(),new Set(),new Set()],chosen:null,kit:{},lean:true,allOpen:false};
 const $app=document.getElementById('app');
@@ -641,7 +630,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const inr=n=>'₹'+Number(n).toLocaleString('en-IN');
 const stepOf=k=>STEPS.find(s=>s.key===k);
 const optOf=(k,v)=>stepOf(k).opts.find(o=>o.v===v);
-const LOG=[]; // in-memory only: handy for the demo (open the console). Never stored or sent.
+const LOG=[];
 const track=(e,d={})=>{LOG.push({t:new Date().toISOString(),e,...d});};
 
 function media(act){
@@ -651,9 +640,6 @@ function media(act){
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
 
-/* ==========================================================
-   5. RECOMMENDATION ENGINE (simple, explainable scoring)
-   ========================================================== */
 function groupKey(){return optOf('company',S.a.company).g}
 function score(act){
   const A=S.a,b=A.blockers,why=[];let s=0;
@@ -704,9 +690,6 @@ function buildPlan(act){
   return P;
 }
 
-/* ==========================================================
-   6. VIEWS
-   ========================================================== */
 const crumbs=i=>`<ol class="crumbs" aria-label="Progress">${['Build','Reveal','Plan','Kit'].map((c,k)=>`<li class="${k<i?'done':k===i?'cur':''}">${k<i?'✓ ':''}${c}</li>`).join('')}</ol>`;
 
 function vLanding(){
@@ -927,12 +910,9 @@ function vDone(){
 }
 const VIEWS={landing:vLanding,build:vBuild,reveal:vReveal,plan:vPlan,kit:vKit,done:vDone};
 
-/* ==========================================================
-   7. RENDER + NAVIGATION
-   ========================================================== */
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function focusKey(el){return el&&el.dataset&&el.dataset.action?[el.dataset.action,el.dataset.key||'',el.dataset.v||'',el.dataset.i||'',el.dataset.id||''].join('|'):null}
-function draw(){ // in-place re-render that keeps keyboard focus
+function draw(){
   const k=focusKey(document.activeElement);
   $app.removeAttribute('data-anim');$app.innerHTML=VIEWS[S.screen]();
   if(k){for(const el of $app.querySelectorAll('[data-action]')){if(focusKey(el)===k){el.focus({preventScroll:true});break}}}
@@ -990,7 +970,6 @@ $app.addEventListener('submit',e=>{
 document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.all'))S.allOpen=e.target.open},true);
 document.getElementById('logo').addEventListener('click',()=>go('landing'));
 
-/* Fill the Decathlon logo chips in the static nav + footer, then start */
 document.querySelectorAll('[data-dlogo]').forEach(el=>{el.outerHTML=dlogo(el.dataset.dlogo)});
 go('landing');
 </script>
