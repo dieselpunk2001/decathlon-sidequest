@@ -33,10 +33,9 @@
 }
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
-  body::before{
+ body::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(rgba(255,246,229,.72),rgba(255,246,229,.72)),url('bg1.jpg') center/cover no-repeat;
-  background-attachment:fixed;
+  background:linear-gradient(rgba(255,246,229,.72),rgba(255,246,229,.72)),var(--bg-img, url('bg1.jpg')) center/cover no-repeat;
 }
 body{
   font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -1073,9 +1072,11 @@ document.getElementById('logo').addEventListener('click',()=>go('landing'));
 
 document.querySelectorAll('[data-dlogo]').forEach(el=>{el.outerHTML=dlogo(el.dataset.dlogo)});
 const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',kit:'bg5.jpg',done:'bg6.jpg'};
-const origGo=go;
-go=function(s){origGo(s);document.body.style.backgroundImage=`linear-gradient(rgba(255,246,229,.72),rgba(255,246,229,.72)),url('${BG_MAP[s]||'bg1.jpg'}')`};
-go('landing');
+const origGo = go;
+go = function(s){
+  origGo(s);
+  document.documentElement.style.setProperty('--bg-img', `url('${BG_MAP[s] || 'bg1.jpg'}')`);
+};go('landing');
   
 </script>
 </body>
