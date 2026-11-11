@@ -79,7 +79,7 @@ h1:focus,h2:focus{outline:none}
   font-size:.8rem;font-weight:700;background:#fff;white-space:nowrap}
 .pill-lime{background:var(--lime)}
 @media(max-width:600px){.logo{font-size:1.25rem}.logo-mark{width:34px;height:34px}.dlogo img{height:28px}.dlogo.sm img{height:24px}.dlogo.lg img{height:36px}}
-@media(max-width:480px){.nav-right{display:none}}
+@media(max-width:480px){.nav-right{display:none}body>#muteBtn{position:fixed;bottom:16px;right:16px;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.25)}}
 
 main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:clamp(1.2rem,3vw,2.2rem) clamp(1rem,4vw,2rem) 3rem}
 [data-anim] > *{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
@@ -1428,52 +1428,66 @@ document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('de
 document.getElementById('logo').addEventListener('click',()=>go('landing'));
 
 /* ==========================================================
-   LOBBY MUSIC: eurotrash.mp3
+   LOBBY MUSIC: lobbymusic.mp3
+   Mobile browsers only allow play() inside a real tap (click/touchend),
+   not touchstart. Keep the unlock listeners until play() succeeds.
    ========================================================== */
 const audioEl=document.createElement('audio');
 audioEl.id='lobbyMusic';
 audioEl.loop=true;
-audioEl.volume=0.35;
-audioEl.crossOrigin='anonymous';
-
-const source=document.createElement('source');
-source.src='lobbymusic.mp3';
-source.type='audio/mp3';
-audioEl.appendChild(source);
-
+audioEl.volume=0.35; // ignored on iOS
+audioEl.preload='auto';
+audioEl.setAttribute('playsinline','');
+audioEl.src='lobbymusic.mp3';
 document.body.appendChild(audioEl);
+audioEl.addEventListener('error',()=>console.error('Audio load error:',audioEl.error));
 
 let musicPlaying=false;
-
-function toggleMusic(){
-  if(musicPlaying){audioEl.pause();musicPlaying=false}
-  else{audioEl.play().catch(e=>console.error('Play error:',e));musicPlaying=true}
-}
-
-const startMusic=()=>{
-  console.log('Attempting to play audio...');
-  audioEl.play().then(()=>{
-    musicPlaying=true;
-    console.log('✓ Audio is now playing');
-  }).catch(e=>{
-    console.error('Play failed:',e.message);
-  });
-  document.removeEventListener('click',startMusic);
-  document.removeEventListener('keydown',startMusic);
-  document.removeEventListener('touchstart',startMusic);
-};
-
-document.addEventListener('click',startMusic,{once:true});
-document.addEventListener('keydown',startMusic,{once:true});
-document.addEventListener('touchstart',startMusic,{once:true});
+let userMuted=false;
 
 const muteBtn=document.createElement('button');
 muteBtn.className='pill';
 muteBtn.id='muteBtn';
-muteBtn.innerHTML='🔊 Music';
+muteBtn.type='button';
 muteBtn.style.cursor='pointer';
-muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMusic();muteBtn.innerHTML=musicPlaying?'🔊 Music':'🔇 Muted'});
-document.querySelector('.nav-right').insertBefore(muteBtn,document.querySelector('.nav-right').firstChild);
+const updateMuteBtn=()=>{muteBtn.innerHTML=musicPlaying?'🔊 Music':'🔇 Muted'};
+updateMuteBtn();
+
+const unlockEvents=['click','touchend','keydown'];
+const removeUnlock=()=>unlockEvents.forEach(ev=>document.removeEventListener(ev,startMusic));
+
+function playMusic(){
+  return audioEl.play().then(()=>{
+    musicPlaying=true;updateMuteBtn();removeUnlock();
+  }).catch(e=>{
+    musicPlaying=false;updateMuteBtn();
+    console.error('Play failed:',e.name,e.message);
+  });
+}
+function pauseMusic(){audioEl.pause();musicPlaying=false;updateMuteBtn()}
+
+function toggleMusic(){
+  if(musicPlaying){userMuted=true;pauseMusic()}
+  else{userMuted=false;playMusic()}
+}
+
+function startMusic(){
+  if(userMuted||musicPlaying){removeUnlock();return}
+  playMusic(); // listeners stay until success, so the next tap retries
+}
+unlockEvents.forEach(ev=>document.addEventListener(ev,startMusic));
+
+muteBtn.addEventListener('click',e=>{e.stopPropagation();removeUnlock();toggleMusic()});
+muteBtn.addEventListener('touchend',e=>e.stopPropagation());
+const navRight=document.querySelector('.nav-right');
+navRight.insertBefore(muteBtn,navRight.firstChild);
+// .nav-right is hidden on phones; move the button out so it stays reachable
+const placeMuteBtn=()=>{
+  if(window.matchMedia('(max-width:480px)').matches){if(muteBtn.parentNode!==document.body)document.body.appendChild(muteBtn)}
+  else if(muteBtn.parentNode!==navRight)navRight.insertBefore(muteBtn,navRight.firstChild);
+};
+placeMuteBtn();
+window.matchMedia('(max-width:480px)').addEventListener('change',placeMuteBtn);
 document.querySelectorAll('[data-dlogo]').forEach(el=>{el.outerHTML=dlogo(el.dataset.dlogo)});
 go('landing');
 </script>
