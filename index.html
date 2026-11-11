@@ -1106,7 +1106,7 @@ function genCoupon(questId,score){
 function vGame(){
  const act=S.chosen;
  return`<div id="game-container" style="position:relative;width:100%;height:600px;background:linear-gradient(180deg,#87CEEB 0%,#E0F6FF 100%);border:3px solid var(--ink);border-radius:20px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--sh)">
-   <canvas id="gameCanvas" width="800" height="600" style="display:block;width:100%;height:100%;background:inherit"></canvas>
+   <canvas id="gameCanvas" style="display:block;width:100%;height:100%;background:inherit;image-rendering:crisp-edges"></canvas>
  </div>
  <div style="text-align:center;margin-top:1rem">
    <p style="font-size:1.1rem;font-weight:700;color:var(--muted)">Jump over ${OBSTACLES[act.id].name}s. Avoid 3 hits and it's game over.</p>
@@ -1134,9 +1134,13 @@ function initGame(){
  const canvas=document.getElementById('gameCanvas');
  if(!canvas)return;
  const ctx=canvas.getContext('2d');
+const dpr=window.devicePixelRatio||1;
+canvas.width=800*dpr;
+canvas.height=600*dpr;
+ctx.scale(dpr,dpr);
  const act=S.chosen;
  const obs=OBSTACLES[act.id];
- let gameRunning=true,lives=3,score=0,gameTime=0,gameOver=false;
+ let gameRunning=true,lives=2,score=0,gameTime=0,gameOver=false;
  const player={x:50,y:450,w:40,h:50,vy:0,jumping:false,color:'#0B1F3A'};
  const gravity=.6,jumpPower=-15;
  const obstacles=[];
@@ -1172,8 +1176,8 @@ function initGame(){
    ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,canvas.width,canvas.height);
    ctx.fillStyle='#E0F6FF';ctx.fillRect(0,canvas.height-40,canvas.width,40);
    ctx.fillStyle=player.color;ctx.fillRect(player.x,player.y,player.w,player.h);
-   ctx.fillStyle='#fff';ctx.font='20px Arial';ctx.fillText('🏃',player.x+8,player.y+30);
-   obstacles.forEach(o=>{ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.font='24px Arial';ctx.fillText(o.emoji,o.x+5,o.y+25)});
+   ctx.fillStyle='#fff';ctx.font='28px Arial';ctx.fillText('🏃',player.x+5,player.y+28);
+   obstacles.forEach(o=>{ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.font='32px Arial';ctx.fillText(o.emoji,o.x+2,o.y+28)});
    ctx.fillStyle='var(--ink)';ctx.font='bold 18px Arial';ctx.fillText(`Score: ${score}`,20,30);ctx.fillText(`Lives: ${lives}`,20,60);
  }
  function gameLoop(){
