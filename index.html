@@ -1425,7 +1425,7 @@ $app.addEventListener('submit',e=>{
   if(e.target.dataset.form==='start'){e.preventDefault();S.name=(new FormData(e.target).get('nm')||'').trim();track('start');S.step=0;go('build')}
 });
 document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.all'))S.allOpen=e.target.open},true);
-document.getElementById('logo').addEventListener('click',()=>go('landing'));document.getElementById('logo').addEventListener('click',()=>go('landing'));
+document.getElementById('logo').addEventListener('click',()=>go('landing'));
 
 /* ==========================================================
    LOBBY MUSIC: eurotrash.mp3
@@ -1434,23 +1434,27 @@ const audioEl=document.createElement('audio');
 audioEl.id='lobbyMusic';
 audioEl.src='eurotrash.mp3';
 audioEl.loop=true;
-audioEl.volume=0.4;
+audioEl.volume=0.35;
+audioEl.muted=false;
 document.body.appendChild(audioEl);
 
 let musicPlaying=false;
 function toggleMusic(){
   if(musicPlaying){audioEl.pause();musicPlaying=false}
-  else{audioEl.play().catch(()=>{});musicPlaying=true}
+  else{audioEl.play().catch(e=>console.log('Play failed:',e));musicPlaying=true}
 }
 
 // Auto-play on first user interaction
 const startMusic=()=>{
-  if(!musicPlaying){audioEl.play().catch(()=>{});musicPlaying=true}
+  audioEl.muted=false;
+  audioEl.play().then(()=>{musicPlaying=true}).catch(e=>console.log('Autoplay blocked:',e));
   document.removeEventListener('click',startMusic);
   document.removeEventListener('keydown',startMusic);
+  document.removeEventListener('touchstart',startMusic);
 };
-document.addEventListener('click',startMusic);
-document.addEventListener('keydown',startMusic);
+document.addEventListener('click',startMusic,{once:true});
+document.addEventListener('keydown',startMusic,{once:true});
+document.addEventListener('touchstart',startMusic,{once:true});
 
 // Add mute button to nav
 const muteBtn=document.createElement('button');
