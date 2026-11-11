@@ -1434,6 +1434,7 @@ const audioEl=document.createElement('audio');
 audioEl.id='lobbyMusic';
 audioEl.loop=true;
 audioEl.volume=0.35;
+audioEl.crossOrigin='anonymous';
 
 const source=document.createElement('source');
 source.src='https://archive.org/download/eurotrash.ogg/eurotrash.ogg';
@@ -1455,7 +1456,7 @@ const startMusic=()=>{
     musicPlaying=true;
     console.log('✓ Audio is now playing');
   }).catch(e=>{
-    console.error('Play failed:',e);
+    console.error('Play failed:',e.message);
   });
   document.removeEventListener('click',startMusic);
   document.removeEventListener('keydown',startMusic);
@@ -1473,7 +1474,6 @@ muteBtn.innerHTML='🔊 Music';
 muteBtn.style.cursor='pointer';
 muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMusic();muteBtn.innerHTML=musicPlaying?'🔊 Music':'🔇 Muted'});
 document.querySelector('.nav-right').insertBefore(muteBtn,document.querySelector('.nav-right').firstChild);
-
 document.querySelectorAll('[data-dlogo]').forEach(el=>{el.outerHTML=dlogo(el.dataset.dlogo)});
 go('landing');
 </script>
