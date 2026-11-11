@@ -972,7 +972,7 @@ function vKit(){
       <div class="sum-row big"><span>Kit total</span><span>${inr(total)}</span></div>
       <div class="gauge" role="img" aria-label="${pct}% of budget"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
       <p class="note">${all?'No budget cap set.':over?`A little over your ${inr(cap)} budget. Try moving something to “Later” or “Have it”.`:`Within your ${inr(cap)} budget. Nice.`}</p>
-      <div class="actions" style="margin-top:1rem"><button class="btn btn-lime btn-lg" data-action="kitdone" style="width:100%">Checkout →</button></div>
+      <div class="actions" style="margin-top:1rem"><button class="btn btn-sun btn-lg" data-action="kitdone" style="width:100%">🎮 Play the quest challenge - unlock a coupon!</button></div>
       <p class="note">Prices as listed on decathlon.in on ${PRICE_DATE}. “~” means approximate. Stock and prices change.</p>
     </aside>
   </div>
@@ -1057,7 +1057,10 @@ $app.addEventListener('click',e=>{
     case 'toplan':go('plan');break;
     case 'kitset':S.kit[t.dataset.id]=t.dataset.v;draw();break;
     case 'lean':S.lean=!S.lean;S.chosen.kit.forEach(([id,tier])=>{if(tier==='o')S.kit[id]=S.lean?'later':'need'});draw();break;
-    case 'kitdone':track('kit_checkout',{need:kitTotals().need});go('done');break;
+   case 'kitdone':
+  if(S.screen==='kit'){S.screen='game';$app.innerHTML=vGame();setTimeout(initGame,100)}
+  else{track('demo_kit_complete',{need:kitTotals().need});go('done')}
+  break;
     case 'share':share();break;
     case 'print':window.print();break;
     case 'restart':
@@ -1075,7 +1078,133 @@ const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',
 const origGo=go;
 go=function(s){origGo(s);document.documentElement.style.setProperty('--bg-img',`url('${BG_MAP[s]||'bg1.jpg'}')`)};
    go('landing');
-  
+  /* ==========================================================
+   PLATFORMER GAME: Quest Challenge
+   ========================================================== */
+const OBSTACLES={
+ cubbon:{name:'Tree branch',emoji:'🌳',color:'#2FB36B'},
+ nandi:{name:'Rock',emoji:'🪨',color:'#FF6B2C'},
+ lake:{name:'Wave',emoji:'🌊',color:'#0069B4'},
+ badminton:{name:'Shuttlecock',emoji:'🪶',color:'#FF9DBB'},
+ football:{name:'Ball',emoji:'⚽',color:'#2FB36B'},
+ climbing:{name:'Hold',emoji:'🧗',color:'#9B5DE5'},
+ swimming:{name:'Splash',emoji:'💦',color:'#00A3E0'},
+ tabletennis:{name:'Ball',emoji:'🏓',color:'#FF6B2C'},
+ run:{name:'Hurdle',emoji:'🏃',color:'#00A3E0'},
+ yoga:{name:'Block',emoji:'🧘',color:'#FF9DBB'}
+};
+const COUPON_TIERS=[
+ {min:0,max:400,discount:10,tier:'bronze'},
+ {min:400,max:800,discount:15,tier:'silver'},
+ {min:800,max:99999,discount:20,tier:'gold'}
+];
+function genCoupon(questId,score){
+ const tier=COUPON_TIERS.find(t=>score>=t.min&&score<t.max);
+ const code=Math.random().toString(36).substring(2,8).toUpperCase();
+ return{code:`SIDEQUEST-${questId.toUpperCase()}-${code}`,discount:tier.discount,tier:tier.tier};
+}
+function vGame(){
+ const act=S.chosen;
+ return`<div id="game-container" style="position:relative;width:100%;height:600px;background:linear-gradient(180deg,#87CEEB 0%,#E0F6FF 100%);border:3px solid var(--ink);border-radius:20px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--sh)">
+   <canvas id="gameCanvas" width="800" height="600" style="display:block;width:100%;height:100%;background:inherit"></canvas>
+ </div>
+ <div style="text-align:center;margin-top:1rem">
+   <p style="font-size:1.1rem;font-weight:700;color:var(--muted)">Jump over ${OBSTACLES[act.id].name}s. Avoid 3 hits and it's game over.</p>
+ </div>`;
+}
+function vGameResult(score,coupon){
+ const tier=COUPON_TIERS.find(t=>score>=t.min&&score<t.max);
+ const tierEmoji={bronze:'🥉',silver:'🥈',gold:'🥇'}[coupon.tier];
+ return`<section style="text-align:center;max-width:640px;margin:1.2rem auto">
+   <div style="font-size:3.2rem;margin-bottom:.6rem">${tierEmoji}</div>
+   <h2 style="font-size:2.2rem;margin-bottom:.4rem">You scored ${score} points!</h2>
+   <p style="font-size:1.1rem;color:var(--muted);margin-bottom:1.4rem">${tier.discount}% off your starter kit</p>
+   <div style="background:#fff;border:var(--bd);border-radius:18px;padding:1.4rem;box-shadow:var(--sh);margin-bottom:1.2rem">
+     <p style="font-size:.85rem;color:var(--muted);margin-bottom:.6rem;text-transform:uppercase;font-weight:700">Your coupon code</p>
+     <p style="font-family:monospace;font-size:1.4rem;font-weight:800;letter-spacing:.05em;margin-bottom:1rem;word-break:break-all">${coupon.code}</p>
+     <button class="btn btn-lime" id="copyCoupon" data-code="${coupon.code}" style="width:100%">📋 Copy to clipboard</button>
+   </div>
+   <div class="actions" style="justify-content:center">
+     <button class="btn btn-blue" data-action="kitdone">Complete my kit →</button>
+     <button class="btn btn-ghost" data-action="toplan">← Back to plan</button>
+   </div>
+ </section>`;
+}
+function initGame(){
+ const canvas=document.getElementById('gameCanvas');
+ if(!canvas)return;
+ const ctx=canvas.getContext('2d');
+ const act=S.chosen;
+ const obs=OBSTACLES[act.id];
+ let gameRunning=true,lives=3,score=0,gameTime=0,gameOver=false;
+ const player={x:50,y:450,w:40,h:50,vy:0,jumping:false,color:'#0B1F3A'};
+ const gravity=.6,jumpPower=-15;
+ const obstacles=[];
+ let spawnRate=120,spawnCounter=0;
+ const keys={};
+ window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key===' ')e.preventDefault()});
+ window.addEventListener('keyup',e=>{keys[e.key]=false});
+ canvas.addEventListener('touchstart',e=>{player.jumping=true;e.preventDefault()});
+ canvas.addEventListener('click',()=>{if(!player.jumping)player.jumping=true});
+ function spawnObstacle(){
+   obstacles.push({x:canvas.width,y:480,w:35,h:35,color:obs.color,emoji:obs.emoji});
+ }
+ function update(){
+   if(!gameRunning)return;
+   gameTime++;
+   if(gameTime%60===0)spawnRate=Math.max(80,spawnRate-5);
+   spawnCounter++;
+   if(spawnCounter>spawnRate){spawnObstacle();spawnCounter=0}
+   if(keys[' ']||keys['ArrowUp']){if(!player.jumping){player.jumping=true;player.vy=jumpPower}}
+   player.vy+=gravity;
+   player.y+=player.vy;
+   if(player.y+player.h>=canvas.height-20){player.y=canvas.height-player.h-20;player.vy=0;player.jumping=false}
+   for(let i=obstacles.length-1;i>=0;i--){
+     obstacles[i].x-=8;
+     if(obstacles[i].x+obstacles[i].w<0){obstacles.splice(i,1);score+=10;continue}
+     if(player.x<obstacles[i].x+obstacles[i].w&&player.x+player.w>obstacles[i].x&&player.y<obstacles[i].y+obstacles[i].h&&player.y+player.h>obstacles[i].y){
+       lives--;score=Math.max(0,score-20);obstacles.splice(i,1);
+       if(lives<=0){gameRunning=false;gameOver=true}
+     }
+   }
+ }
+ function draw(){
+   ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,canvas.width,canvas.height);
+   ctx.fillStyle='#E0F6FF';ctx.fillRect(0,canvas.height-40,canvas.width,40);
+   ctx.fillStyle=player.color;ctx.fillRect(player.x,player.y,player.w,player.h);
+   ctx.fillStyle='#fff';ctx.font='20px Arial';ctx.fillText('🏃',player.x+8,player.y+30);
+   obstacles.forEach(o=>{ctx.fillStyle=o.color;ctx.fillRect(o.x,o.y,o.w,o.h);ctx.font='24px Arial';ctx.fillText(o.emoji,o.x+5,o.y+25)});
+   ctx.fillStyle='var(--ink)';ctx.font='bold 18px Arial';ctx.fillText(`Score: ${score}`,20,30);ctx.fillText(`Lives: ${lives}`,20,60);
+ }
+ function gameLoop(){
+   update();draw();
+   if(gameRunning){requestAnimationFrame(gameLoop)}
+   else{
+     ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,canvas.width,canvas.height);
+     ctx.fillStyle='#fff';ctx.font='bold 32px Arial';ctx.textAlign='center';ctx.fillText('Game Over!',canvas.width/2,canvas.height/2);
+     const coupon=genCoupon(act.id,score);
+     S.gameScore=score;S.gameCoupon=coupon;
+     setTimeout(()=>{S.screen='gameresult';draw();$app.innerHTML=vGameResult(score,coupon);attachGameResultHandlers()},1500);
+   }
+ }
+ gameLoop();
+}
+function attachGameResultHandlers(){
+ const btn=document.getElementById('copyCoupon');
+ if(btn){
+   btn.addEventListener('click',async e=>{
+     const code=e.target.dataset.code;
+     try{
+       await navigator.clipboard.writeText(code);
+       toast('✓ Coupon copied!');
+       e.target.textContent='✓ Copied!';
+       setTimeout(()=>{e.target.textContent='📋 Copy to clipboard'},2000);
+     }catch(err){
+       toast('Copy this code: '+code);
+     }
+   });
+ }
+}
 </script>
 </body>
 </html>
