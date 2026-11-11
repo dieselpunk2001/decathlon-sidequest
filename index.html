@@ -1432,32 +1432,40 @@ document.getElementById('logo').addEventListener('click',()=>go('landing'));
    ========================================================== */
 const audioEl=document.createElement('audio');
 audioEl.id='lobbyMusic';
-audioEl.src='https://cors-anywhere.herokuapp.com/https://archive.org/download/eurotrash.ogg/eurotrash.ogg';
-console.log('Audio element created. Source:', audioEl.src);
 audioEl.loop=true;
 audioEl.volume=0.35;
-audioEl.muted=false;
+
+const source=document.createElement('source');
+source.src='https://archive.org/download/eurotrash.ogg/eurotrash.ogg';
+source.type='audio/ogg';
+audioEl.appendChild(source);
+
 document.body.appendChild(audioEl);
 
 let musicPlaying=false;
+
 function toggleMusic(){
   if(musicPlaying){audioEl.pause();musicPlaying=false}
-  else{audioEl.play().catch(e=>console.log('Play failed:',e));musicPlaying=true}
+  else{audioEl.play().catch(e=>console.error('Play error:',e));musicPlaying=true}
 }
 
-// Auto-play on first user interaction
 const startMusic=()=>{
-  audioEl.muted=false;
-  audioEl.play().then(()=>{musicPlaying=true}).catch(e=>console.log('Autoplay blocked:',e));
+  console.log('Attempting to play audio...');
+  audioEl.play().then(()=>{
+    musicPlaying=true;
+    console.log('✓ Audio is now playing');
+  }).catch(e=>{
+    console.error('Play failed:',e);
+  });
   document.removeEventListener('click',startMusic);
   document.removeEventListener('keydown',startMusic);
   document.removeEventListener('touchstart',startMusic);
 };
+
 document.addEventListener('click',startMusic,{once:true});
 document.addEventListener('keydown',startMusic,{once:true});
 document.addEventListener('touchstart',startMusic,{once:true});
 
-// Add mute button to nav
 const muteBtn=document.createElement('button');
 muteBtn.className='pill';
 muteBtn.id='muteBtn';
