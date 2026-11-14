@@ -1225,18 +1225,23 @@ function genCoupon(questId,score){
  return {code:`SIDEQUEST-${questId.toUpperCase()}-${code}`,discount:tier.discount,tier:tier.tier};
 }
 
-function vGame(){
+ function vGame(){
  const act=S.chosen;
  const obs=OBSTACLES[act.id]||OBSTACLES.cubbon;
+ const medal={bronze:'🥉',silver:'🥈',gold:'🥇'};
  return `${crumbs(4)}
  <div class="page-head" style="text-align:center">
    <h2 tabindex="-1">🎮 ${esc(act.name.split(' ')[0])} Obstacle Sprint</h2>
-   <p style="margin:0 auto">Tap / Spacebar to jump over incoming ${esc(obs.name)}s! 1 Life — time your jumps to unlock a starter coupon.</p>
+   <p style="margin:0 auto">Jump the incoming ${esc(obs.name)}s. One life. Every obstacle you clear is +50 points.</p>
  </div>
- <div id="game-container" style="position:relative;width:100%;max-width:800px;height:420px;background:linear-gradient(180deg,#87CEEB 0%,#E0F6FF 70%,#C8F54A 70%,#2FB36B 100%);border:var(--bd);border-radius:24px;overflow:hidden;margin:1.2rem auto;box-shadow:var(--sh);touch-action:none">
-   <canvas id="gameCanvas" width="800" height="420" style="display:block;width:100%;height:100%"></canvas>
+ <div id="game-container" style="position:relative;width:100%;max-width:800px;aspect-ratio:800/420;margin:1.2rem auto .8rem;border:var(--bd);border-radius:24px;overflow:hidden;box-shadow:var(--sh);background:#CFEFFF;touch-action:none;user-select:none;-webkit-user-select:none">
+   <canvas id="gameCanvas" style="display:block;width:100%;height:100%"></canvas>
  </div>
- <div style="display:flex;justify-content:center;gap:12px;margin-top:.8rem;flex-wrap:wrap">
+ <p style="text-align:center;font-weight:700;color:var(--muted)">Press <b>Space</b> or <b>↑</b>, or tap the game, to jump</p>
+ <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:.7rem">
+   ${COUPON_TIERS.map(t=>`<span class="chip">${medal[t.tier]} ${t.min}+ pts: ${t.discount}% off</span>`).join('')}
+ </div>
+ <div style="display:flex;justify-content:center;margin-top:1rem">
    <button class="btn btn-ghost" data-action="kitdone">Skip game →</button>
  </div>`;
 }
@@ -1264,137 +1269,171 @@ function initGame(){
  const canvas=document.getElementById('gameCanvas');
  if(!canvas)return;
  const ctx=canvas.getContext('2d');
- const dpr=window.devicePixelRatio||1;
  const W=800,H=420;
+ const dpr=Math.min(window.devicePixelRatio||1,2);
  canvas.width=W*dpr;canvas.height=H*dpr;
- ctx.scale(dpr,dpr);
+ ctx.setTransform(dpr,0,0,dpr,0,0);
 
  const act=S.chosen;
  const obs=OBSTACLES[act.id]||OBSTACLES.cubbon;
+ const INK='#0B1F3A';
+ const EMOJI='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+ const DISPLAY='"All The Way To The Sun","Bricolage Grotesque",sans-serif';
+
+ // ---- Gameplay values: same as before ----
  const groundY=340;
  const player={x:60,y:groundY-46,w:36,h:46,vy:0,jumping:false};
  const gravity=0.82,jumpPower=-14.5;
  const obstacles=[];
- let gameRunning=true,score=0,gameTime=0,spawnTimer=0,spawnInterval=110;
+ let gameRunning=true,score=0,gameTime=0,spawnTimer=0,spawnInterval=110,speed=6.8,dist=0;
+ const clouds=[{x:120,y:70,s:1},{x:430,y:110,s:.75},{x:700,y:60,s:.9}];
 
- function jump(){
-   if(!player.jumping){
-     player.jumping=true;
-     player.vy=jumpPower;
-   }
- }
-
- const onKey=e=>{if(e.code==='Space'||e.code==='ArrowUp'||e.key===' '){e.preventDefault();jump();}};
+ function jump(){if(!player.jumping&&gameRunning){player.jumping=true;player.vy=jumpPower;}}
+ const onKey=e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump();}};
  const onTouch=e=>{e.preventDefault();jump();};
-
  window.addEventListener('keydown',onKey);
  canvas.addEventListener('touchstart',onTouch,{passive:false});
  canvas.addEventListener('mousedown',onTouch);
+ function cleanup(){
+   window.removeEventListener('keydown',onKey);
+   canvas.removeEventListener('touchstart',onTouch);
+   canvas.removeEventListener('mousedown',onTouch);
+ }
 
  function spawn(){
-   obstacles.push({x:W+20,y:groundY-32,w:32,h:32,emoji:obs.emoji,color:obs.color,passed:false});
+   obstacles.push({x:W+20,y:groundY-32,w:32,h:32,emoji:obs.emoji,passed:false});
  }
 
  function update(){
-   if(!gameRunning)return;
-   gameTime++;
-   spawnTimer++;
+   gameTime++;spawnTimer++;
    if(gameTime%180===0)spawnInterval=Math.max(65,spawnInterval-4);
-   if(spawnTimer>spawnInterval){
-     spawn();
-     spawnTimer=0;
-   }
+   if(spawnTimer>spawnInterval){spawn();spawnTimer=0;}
 
-   player.vy+=gravity;
-   player.y+=player.vy;
-   if(player.y>=groundY-player.h){
-     player.y=groundY-player.h;
-     player.vy=0;
-     player.jumping=false;
-   }
+   player.vy+=gravity;player.y+=player.vy;
+   if(player.y>=groundY-player.h){player.y=groundY-player.h;player.vy=0;player.jumping=false;}
 
-   const speed=6.8+Math.min(4.5,gameTime/300);
+   speed=6.8+Math.min(4.5,gameTime/300);
+   dist+=speed;
    for(let i=obstacles.length-1;i>=0;i--){
      const o=obstacles[i];
      o.x-=speed;
-     
-     // Score when passing obstacle (+50 per obstacle cleanly jumped)
-     if(!o.passed&&o.x+o.w<player.x){
-       o.passed=true;
-       score+=50;
-     }
-     
-     // Collision check (box with padding)
+     if(!o.passed&&o.x+o.w<player.x){o.passed=true;score+=50;}
      const pad=6;
-     if(player.x+pad<o.x+o.w-pad &&
-        player.x+player.w-pad>o.x+pad &&
-        player.y+pad<o.y+o.h-pad &&
-        player.y+player.h>o.y+pad){
-       gameRunning=false;
-     }
-
+     if(player.x+pad<o.x+o.w-pad&&player.x+player.w-pad>o.x+pad&&
+        player.y+pad<o.y+o.h-pad&&player.y+player.h>o.y+pad){gameRunning=false;}
      if(o.x<-50)obstacles.splice(i,1);
    }
  }
 
+ // ---- Drawing helpers ----
+ function rr(x,y,w,h,r){
+   ctx.beginPath();ctx.moveTo(x+r,y);
+   ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+   ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+ }
+ function pill(text,bg,alignRight){
+   ctx.font='800 17px "DM Sans",sans-serif';
+   const w=ctx.measureText(text).width+28,h=34,y=16;
+   const x=alignRight?W-19-w:16;
+   ctx.fillStyle=INK;rr(x+3,y+3,w,h,17);ctx.fill();
+   ctx.fillStyle=bg;rr(x,y,w,h,17);ctx.fill();
+   ctx.lineWidth=2.5;ctx.strokeStyle=INK;rr(x,y,w,h,17);ctx.stroke();
+   ctx.fillStyle=INK;ctx.textAlign='left';ctx.textBaseline='middle';
+   ctx.fillText(text,x+14,y+h/2+1);
+ }
+ function hills(offset,amp,period,color){
+   ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,groundY);
+   for(let x=0;x<=W;x+=8)ctx.lineTo(x,groundY-amp*(0.55+0.45*Math.sin((x+offset)/period)));
+   ctx.lineTo(W,groundY);ctx.closePath();ctx.fill();
+ }
+ function cloud(x,y,s){
+   ctx.beginPath();
+   ctx.arc(x,y,22*s,0,Math.PI*2);
+   ctx.arc(x+26*s,y-10*s,28*s,0,Math.PI*2);
+   ctx.arc(x+54*s,y,22*s,0,Math.PI*2);
+   ctx.fill();
+ }
+
  function drawFrame(){
-   // Sky & Background
-   ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,W,groundY);
+   // Sky
+   const sky=ctx.createLinearGradient(0,0,0,groundY);
+   sky.addColorStop(0,'#8FD3FF');sky.addColorStop(1,'#E8F8FF');
+   ctx.fillStyle=sky;ctx.fillRect(0,0,W,groundY);
+
+   // Sun
+   ctx.fillStyle='#FFD23F';ctx.beginPath();ctx.arc(W-120,118,32,0,Math.PI*2);ctx.fill();
+   ctx.lineWidth=3;ctx.strokeStyle=INK;ctx.stroke();
+
+   // Clouds + hills (parallax)
+   ctx.fillStyle='rgba(255,255,255,.9)';
+   clouds.forEach(c=>{const span=W+160;const x=((c.x-dist*0.08)%span+span)%span-80;cloud(x,c.y,c.s);});
+   hills(dist*0.15,70,110,'#B9E8C2');
+   hills(dist*0.35,40,70,'#8FD49E');
+
+   // Ground
    ctx.fillStyle='#2FB36B';ctx.fillRect(0,groundY,W,H-groundY);
-   ctx.fillStyle='#C8F54A';ctx.fillRect(0,groundY,W,8);
+   ctx.fillStyle='#C8F54A';ctx.fillRect(0,groundY,W,10);
+   ctx.fillStyle=INK;ctx.fillRect(0,groundY,W,3);
+   ctx.fillStyle='rgba(255,255,255,.35)';
+   const off=dist%60;
+   for(let x=-off;x<W;x+=60)ctx.fillRect(x,groundY+40,30,5);
 
-   // Horizon details
-   ctx.fillStyle='rgba(255,255,255,0.6)';
-   ctx.beginPath();ctx.arc(140,80,26,0,Math.PI*2);ctx.arc(170,80,34,0,Math.PI*2);ctx.arc(200,80,26,0,Math.PI*2);ctx.fill();
-
-   // Draw Player
-   ctx.font='38px sans-serif';
-   ctx.fillText('🏃',player.x-2,player.y+38);
-
-   // Draw Obstacles
+   // Obstacles
+   ctx.textAlign='center';ctx.textBaseline='middle';
    obstacles.forEach(o=>{
-     ctx.font='32px sans-serif';
-     ctx.fillText(o.emoji,o.x-2,o.y+28);
+     ctx.fillStyle='rgba(11,31,58,.2)';ctx.beginPath();
+     ctx.ellipse(o.x+o.w/2,groundY+3,16,4,0,0,Math.PI*2);ctx.fill();
+     ctx.font=`34px ${EMOJI}`;ctx.fillStyle=INK;
+     ctx.fillText(o.emoji,o.x+o.w/2,o.y+o.h/2);
    });
 
+   // Player shadow (shrinks mid-jump)
+   const lift=(groundY-player.h)-player.y;
+   ctx.fillStyle='rgba(11,31,58,.22)';ctx.beginPath();
+   ctx.ellipse(player.x+player.w/2,groundY+3,Math.max(8,18-lift*0.06),4,0,0,Math.PI*2);ctx.fill();
+
+   // Player: emoji mirrored so it runs RIGHT, toward the obstacles
+   ctx.save();
+   ctx.translate(player.x+player.w/2,player.y+player.h/2);
+   ctx.scale(-1,1);
+   ctx.font=`44px ${EMOJI}`;ctx.textAlign='center';ctx.textBaseline='middle';
+   ctx.fillText('🏃',0,0);
+   ctx.restore();
+
    // HUD
-   ctx.fillStyle='#0B1F3A';
-   ctx.font='800 20px "DM Sans", sans-serif';
-   ctx.fillText(`Score: ${score}`,24,36);
-   ctx.fillText(`Lives: 1`,W-110,36);
+   pill(`Score ${score}`,'#C8F54A',false);
+   const next=COUPON_TIERS.find(t=>score<t.min);
+   pill(next?`Next: ${next.discount}% off at ${next.min}`:'🥇 Max reward unlocked','#fff',true);
  }
 
- function loop(){
-   update();
+ // ---- Fixed 60 updates/sec, so 120Hz phones don't run at double speed ----
+ const STEP=1000/60;let last=0,acc=0;
+ function loop(now){
+   if(!canvas.isConnected){cleanup();return;} // player skipped mid-run
+   acc+=Math.min(100,now-last);last=now;
+   while(acc>=STEP&&gameRunning){update();acc-=STEP;}
    drawFrame();
-   if(gameRunning){
-     requestAnimationFrame(loop);
-   } else {
-     window.removeEventListener('keydown',onKey);
-     canvas.removeEventListener('touchstart',onTouch);
-     canvas.removeEventListener('mousedown',onTouch);
+   if(gameRunning){requestAnimationFrame(loop);return;}
 
-     ctx.fillStyle='rgba(11,31,58,0.7)';
-     ctx.fillRect(0,0,W,H);
-     ctx.fillStyle='#fff';
-     ctx.font='800 34px "Bricolage Grotesque", sans-serif';
-     ctx.textAlign='center';
-     ctx.fillText('Game Over!',W/2,H/2-10);
-     ctx.font='500 18px "DM Sans", sans-serif';
-     ctx.fillText(`Final Score: ${score}`,W/2,H/2+24);
+   cleanup();
+   ctx.fillStyle='rgba(11,31,58,.72)';ctx.fillRect(0,0,W,H);
+   ctx.textAlign='center';ctx.textBaseline='alphabetic';
+   ctx.fillStyle='#fff';ctx.font=`800 40px ${DISPLAY}`;
+   ctx.fillText('Game over!',W/2,H/2-6);
+   ctx.fillStyle='#C8F54A';ctx.font='700 20px "DM Sans",sans-serif';
+   ctx.fillText(`Final score: ${score}`,W/2,H/2+30);
 
-     const coupon=genCoupon(act.id,score);
-     S.gameScore=score;S.gameCoupon=coupon;
-     setTimeout(()=>{
-       S.screen='gameresult';
-       $app.innerHTML=vGameResult(score,coupon);
-       attachGameResultHandlers();
-     },1200);
-   }
+   const coupon=genCoupon(act.id,score);
+   S.gameScore=score;S.gameCoupon=coupon;
+   setTimeout(()=>{
+     if(S.screen!=='game')return;
+     S.screen='gameresult';
+     $app.innerHTML=vGameResult(score,coupon);
+     attachGameResultHandlers();
+   },1200);
  }
- requestAnimationFrame(loop);
+ requestAnimationFrame(t=>{last=t;drawFrame();requestAnimationFrame(loop);});
 }
-
 function attachGameResultHandlers(){
  const btn=document.getElementById('copyCoupon');
  if(btn){
