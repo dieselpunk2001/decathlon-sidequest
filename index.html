@@ -74,7 +74,7 @@ h1:focus,h2:focus{outline:none}
 .logo{display:flex;align-items:center;gap:.55rem;font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:.01em}
 .logo-mark{display:grid;place-items:center;width:40px;height:40px;background:var(--lime);border:var(--bd);border-radius:12px;
   box-shadow:3px 3px 0 var(--ink);transform:rotate(-6deg);font-size:1rem;flex:none}
-.nav-right{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.nav-right{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
 .pill{display:inline-flex;align-items:center;gap:.35rem;border:2px solid var(--ink);border-radius:999px;padding:.2rem .75rem;
   font-size:.8rem;font-weight:700;background:#fff;white-space:nowrap}
 .pill-lime{background:var(--lime)}
@@ -342,7 +342,7 @@ footer b{color:var(--lime)}
     <button class="logo" id="logo" aria-label="SideQuest home"><span class="logo-mark" aria-hidden="true">SQ</span><span>SideQuest</span></button>
   </div>
   <div class="nav-right">
-    <span class="pill pill-lime">📍 Bangalore Pilot</span>
+    <span class="pill pill-lime">📍 Bangalore Pilot Program</span>
   </div>
 </header>
 
@@ -357,14 +357,15 @@ footer b{color:var(--lime)}
       <p>Product names and prices are shown for illustration, based on listings seen on decathlon.in on 10 Nov 2026, and may have changed. Items marked “~” are approximate. Product links open Decathlon’s own website in a new tab. The Decathlon name, brands and logo are used solely for non-commercial academic demonstration and belong to their respective owners. Photos are royalty-free stock images (Unsplash / Pexels). This prototype will be taken down after evaluation.</p>
     </div>
   </div>
-  <p class="made-with">Made with ❤️ by Ankit, Aditya, Archit, Kanav, Riyanshi, Suhani, Tanya 🏃‍♂️🏸⚽🧘🎯🎣🎲</p>
+  <p class="made-with">Made with ❤️ by Ankit, Aditya, Archit, Kanav, Riyanshi, Suhani, Tanya 🏃‍♂️🏸⚽🧘🎯🎣🎲🏏🛹🛶</p>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <noscript><p style="padding:2rem">SideQuest needs JavaScript to run. Please enable it and reload.</p></noscript>
 
 <script>
 /* ==========================================================
-   LOGO
+   LOGO: decathlon-seeklogo.png in the repo root.
+   Fallbacks: assets/decathlon-logo.png, decathlon-logo.png
    ========================================================== */
 const LOGO_FALLBACKS=['assets/decathlon-logo.png','decathlon-logo.png'];
 function onLogoError(img){
@@ -379,24 +380,29 @@ const dlogo=(cls='')=>`<span class="dlogo ${cls}"><img src="decathlon-seeklogo.p
    ========================================================== */
 const U=(id,w=1200)=>`https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
 const IMG={
-  cubbon:     {local:'cubbon.jpg',      remote:U('photo-1476480862126-209bfaa8edc8')},
-  nandi:      {local:'nandi.jpg',       remote:U('photo-1541625602330-2277a4c46182')},
-  lake:       {local:'lake.jpg',        remote:U('photo-1439066615861-d1af74d74000')},
-  badminton:  {local:'badminton.jpg',   remote:U('photo-1626224583764-f87db24ac4ea')},
-  football:   {local:'football.jpg',    remote:U('photo-1574629810360-7efbbe195018')},
-  climbing:   {local:'climbing.jpg',    remote:U('photo-1522163182402-834f871fd851')},
-  swimming:   {local:'swimming.jpg',    remote:U('photo-1530549387789-4c1017266635')},
-  tabletennis:{local:'tabletennis.jpg', remote:U('photo-1609710228159-0fa9bd7c0827')},
-  run:        {local:'run.jpg',         remote:U('photo-1552674605-db6ffd4facb5')},
-  yoga:       {local:'yoga.jpg',        remote:U('photo-1544367567-0f2fcb009e0b')},
-  fishing:    {local:'fishing.jpg',     remote:U('photo-1535223289827-42f1e9919769')},
-  boardgames: {local:'boardgames.jpg',  remote:U('photo-1610890716171-6b1bb98ffd09')},
-  archery:    {local:'archery.jpg',     remote:U('photo-1511067007398-7e4b90cfa4bc')}
+  cubbon:       {local:'cubbon.jpg',        remote:U('photo-1476480862126-209bfaa8edc8')},
+  nandi:        {local:'nandi.jpg',         remote:U('photo-1541625602330-2277a4c46182')},
+  lake:         {local:'lake.jpg',          remote:U('photo-1439066615861-d1af74d74000')},
+  badminton:    {local:'badminton.jpg',     remote:U('photo-1626224583764-f87db24ac4ea')},
+  football:     {local:'football.jpg',      remote:U('photo-1574629810360-7efbbe195018')},
+  climbing:     {local:'climbing.jpg',      remote:U('photo-1522163182402-834f871fd851')},
+  swimming:     {local:'swimming.jpg',      remote:U('photo-1530549387789-4c1017266635')},
+  tabletennis:  {local:'tabletennis.jpg',   remote:U('photo-1609710228159-0fa9bd7c0827')},
+  run:          {local:'run.jpg',           remote:U('photo-1552674605-db6ffd4facb5')},
+  yoga:         {local:'yoga.jpg',          remote:U('photo-1544367567-0f2fcb009e0b')},
+  cricket:      {local:'cricket.jpg',       remote:U('photo-1540747913346-19e32dc3e97e')},
+  dance:        {local:'dance.jpg',         remote:U('photo-1518834107812-67b0b7c58434')},
+  kayaking:     {local:'kayaking.jpg',      remote:U('photo-1544551763-46a013bb70d5')},
+  skateboarding:{local:'skateboarding.jpg', remote:U('photo-1520045892732-304bc3ac5d8e')},
+  bouldering:   {local:'bouldering.jpg',    remote:U('photo-1564769662533-4f00a87b4056')},
+  fishing:      {local:'fishing.jpg',       remote:U('photo-1535223289827-42f1e9919769')},
+  boardgames:   {local:'boardgames.jpg',    remote:U('photo-1610890716171-6b1bb98ffd09')},
+  archery:      {local:'archery.jpg',       remote:U('photo-1511067007398-7e4b90cfa4bc')}
 };
 function imgFail(el){const n=el.dataset.alt;if(n){el.dataset.alt='';el.src=n}else el.remove()}
 
 /* ==========================================================
-   QUESTS (13 Bangalore activities)
+   QUESTS (18 total Bangalore activities)
    ========================================================== */
 const ACTS = [
 {id:'cubbon',name:'Cubbon Park Reset Walk/Run',emoji:'🌳',cat:'fresh',grad:['#C8F54A','#2FB36B'],
@@ -570,11 +576,91 @@ const ACTS = [
       ['yogapants','e','High-waisted and stretchy, so they stay put in forward folds.'],
       ['bottle','o'],['band','o'],['towel','o']]},
 
+{id:'cricket',name:'Cricket Box Nets & Bowling Machine',emoji:'🏏',cat:'skill',grad:['#2FB36B','#C8F54A'],
+ blurb:'Test your timing and drive mechanics in an automated turf net booth.',
+ scenes:['indoor','group','fitness'],energy:[2,4],times:['sat-afternoon','sat-evening','sun-morning','sun-evening'],avoid:[],
+ company:['solo','friend','partner','group'],cost:[300,900],gear:2,beginner:true,soloOk:true,weatherProof:true,
+ dur:'60 min',level:'Easy to moderate',where:'Indoor turf box nets & automated bowling simulators across HSR, Koramangala or JP Nagar.',
+ before:['Book a 1-hour lane slot and choose machine speeds (start at 70-80 km/h).','Bring your own bat or confirm venue rental gear.'],
+ during:['Warm up your shoulders and wrist mobility for 5 minutes.','Take turns facing 3 overs (18 balls) per set. Focus on defensive straight bat.'],
+ after:['Hydrate, review phone footage of your stance, and stretch lats.'],
+ rain:'Completely indoor netting, zero rain interruption.',
+ solo:'Automated bowling machines make this ideal for solo practice.',
+ first:'Minutes 0–10: warm-up & slow pace. 10–45: targeted shot drills. 45–60: mini chase.',
+ safety:'Wear a helmet and protective guard when facing speeds above 80 km/h.',
+ kit:[['tee','e','Light breathable sportswear for high bat speed.'],
+      ['bottle','e','Intense cardio intervals need steady water refills.'],
+      ['courtshoes','e','Non-marking grippy soles for fast crease footwork.']]},
+
+{id:'dance',name:'Open Studio Dance & Rhythm Workout',emoji:'🔊',cat:'indoor',grad:['#FF9DBB','#9B5DE5'],
+ blurb:'High-vibe choreo and rhythm cardio without the pressure of performance.',
+ scenes:['indoor','learn','fitness'],energy:[3,5],times:['sat-afternoon','sat-evening','sun-morning','sun-evening'],avoid:[],
+ company:['solo','friend','partner','group'],cost:[300,750],gear:1,beginner:true,soloOk:true,weatherProof:true,
+ dur:'60 min',level:'Moderate',where:'Beginner open dance workshops in Indiranagar, Church Street or Koramangala studios.',
+ before:['Register for a beginner hip-hop, salsa or zumba drop-in batch.','Wear flexible sweatpants and clean sneakers.'],
+ during:['Follow the 8-count breakdown from the studio instructor.','Keep steps small and focus on groove rather than perfection.'],
+ after:['Cool-down stretch circle and studio group reel clip.'],
+ rain:'Studio based—rain proof.',
+ solo:'Studio classes are built for individual drop-ins.',
+ first:'Minutes 0–15: isolation warm-up. 15–45: choreo breakdown. 45–60: full-tempo run-through.',
+ safety:'Stay hydrated and land softly on ball of feet.',
+ kit:[['stretchpants','e','Unrestricted leg movement is vital for choreo.'],
+      ['tee','e','Sweat-wicking top keeps you light.'],
+      ['bottle','e','Continuous cardio demands constant hydration.']]},
+
+{id:'kayaking',name:'Lake Kayaking Paddle Outing',emoji:'🛶',cat:'fresh',grad:['#00A3E0','#2FB36B'],unusual:true,
+ blurb:'Calm morning paddling on open water surrounded by greenery.',
+ scenes:['fresh','unusual','fitness'],energy:[2,4],times:['sat-sunrise','sun-morning'],avoid:['sat-afternoon','sat-evening','sun-evening'],
+ company:['solo','friend','partner','group'],cost:[500,1200],gear:1,beginner:true,soloOk:true,weatherProof:false,
+ dur:'90 min',level:'Easy',where:'Water sports centres at Avalahalli / Yelahanka Lake or Manchinbele reservoir.',
+ before:['Reserve a morning single or tandem kayak slot.','Pack a dry change of clothes and secure phone pouch.'],
+ during:['Strap on lifejacket, follow basic paddle forward/reverse stroke guidance.','Glide along shoreline and take resting drifts.'],
+ after:['Towel dry and enjoy waterside breakfast.'],
+ rain:'Cancelled in heavy thunderstorms; light morning mist is fine.',
+ solo:'Single sit-on kayaks are beginner friendly for solo paddlers.',
+ first:'Minutes 0–15: life jacket fitting & dock safety. 15–75: open water loop. 75–90: dock return.',
+ safety:'Always wear an approved lifejacket and stay within safety zone buoys.',
+ kit:[['towel','e','Fast drying towel after water spray.'],
+      ['bottle','e','Sun and water reflection will dehydrate you quickly.'],
+      ['cap','o'],['sunglasses','o']]},
+
+{id:'skateboarding',name:'Skatepark Starter & Balance Session',emoji:'🛹',cat:'urban',grad:['#FF6B2C','#FFD23F'],unusual:true,
+ blurb:'Master pushing, carving, and kick turns on smooth concrete flats.',
+ scenes:['fresh','unusual','learn','fitness'],energy:[3,5],times:['sat-sunrise','sat-afternoon','sun-morning','sun-evening'],avoid:[],
+ company:['solo','friend','partner','group'],cost:[300,800],gear:2,beginner:true,soloOk:true,weatherProof:false,
+ dur:'60–90 min',level:'Moderate',where:'Public skateparks in Swami Vivekananda park, Play Arena Sarjapur, or Cubbon flats.',
+ before:['Check beginner morning hours when bowls and flats are empty.','Wear flat-soled skate shoes and knee/wrist pads.'],
+ during:['Practise finding your balance stance (regular vs goofy).','Master smooth foot pushes and gentle heel-toe carving.'],
+ after:['Rest knees, stretch calf muscles and ankles.'],
+ rain:'Never skate on wet concrete ramps.',
+ solo:'Skate parks have a welcoming community culture for beginners.',
+ first:'Minutes 0–15: stance & pushing on grass/flat. 15–45: gentle rolling on smooth concrete. 45–60: carving.',
+ safety:'Wear wrist guards and helmet; learn how to run out of falls.',
+ kit:[['walkshoes','e','Flat-sole skate or walking shoes for board feel.'],
+      ['tee','e','Durable clothing that tolerates light ground contact.'],
+      ['helmet','e','Crucial starter safety gear on concrete ramps.']]},
+
+{id:'bouldering',name:'Outdoor Natural Rock Bouldering Lite',emoji:'🧗‍♂️',cat:'fresh',grad:['#9B5DE5','#FF6B2C'],unusual:true,long:true,
+ blurb:'Scramble up real granite boulders under open skies with crashpad protection.',
+ scenes:['fresh','unusual','fitness'],energy:[3,5],times:['sat-sunrise','sun-morning','full'],avoid:['sat-afternoon'],
+ company:['friend','partner','group'],cost:[600,1600],gear:2,beginner:false,soloOk:false,weatherProof:false,
+ dur:'Half day (3–4 hours)',level:'Moderate',where:'Avathi / Savandurga / Turahalli forest boulder fields near Bangalore.',
+ before:['Join a guided local bouldering group with crashpad and spotters.','Pack chalk bag, climbing shoes and extra hydration.'],
+ during:['Learn how to read natural rock crimps and footholds.','Climb short V0-V1 problems with active spotters beneath you.'],
+ after:['Chalk wash, forearm stretches and a hearty trail meal.'],
+ rain:'Postpone if granite is wet or slippery.',
+ solo:'Always climb outdoors with a partner or certified spotter.',
+ first:'Minutes 0–30: trail walk & crashpad setup. 30–120: problem solving & sends. 120–150: cool-down.',
+ safety:'Check landing zones, check crashpads constantly and never climb solo outside.',
+ kit:[['stretchpants','e','Abrasion-resistant stretch bottoms for granite friction.'],
+      ['bottle','e','Rocky crags heat up rapidly—bring plenty of water.'],
+      ['bag','e','Rugged 20L daypack to carry essentials onto trails.']]},
+
 {id:'fishing',name:'Leisure Fishing Experience',emoji:'🎣',cat:'fresh',grad:['#00A3E0','#2FB36B'],unusual:true,
  blurb:'Peaceful waterside hours learning basic catch-and-release casting with a local guide.',
  scenes:['fresh','unusual','learn'],energy:[1,2],times:['sat-sunrise','sun-morning','sat-afternoon'],avoid:['sat-evening','sun-evening'],
  company:['solo','friend','partner','family'],cost:[400,1200],gear:1,beginner:true,soloOk:true,weatherProof:false,
- dur:'2–3 hours',level:'Very easy',where:'Managed catch-and-release fishing lakes or eco-farms on Kanakapura/Sarjapur road outskirts. Check guided weekend pass.',
+ dur:'2–3 hours',level:'Very easy',where:'Managed catch-and-release fishing lakes or eco-farms on Kanakapura/Sarjapur road outskirts.',
  before:['Book an angling day-pass or intro slot that includes rod & bait rental.','Check weather forecast and bring a brimmed hat & bug spray.','Carry plenty of water and a sit-mat.'],
  during:['Learn how to bait the hook and release the spool with the lakeside tutor.','Cast into shaded waters near reed beds and watch the bobber float.','Practise gentle reel-ins and unhooking.'],
  after:['Wash hands, pack all trash, and relax by the water with chai.'],
@@ -830,7 +916,7 @@ function vLanding(){
   return `
   <section class="hero" aria-labelledby="h">
     <div>
-      <p class="kicker"><span class="dot"></span> 48 hours · 13 quests · 1 city</p>
+      <p class="kicker"><span class="dot"></span> 48 hours · 18 quests · 1 city</p>
       <h1 id="h" tabindex="-1">From <mark class="hl">“someday”</mark> to <mark class="hl hl-sun">this weekend.</mark></h1>
       <p class="lede">Tell SideQuest how your weekend feels. It builds a ready-to-go sport plan for Bangalore, with the first session mapped out and only the gear you actually need.</p>
       <form class="start" data-form="start">
@@ -846,7 +932,7 @@ function vLanding(){
       ${pol('p2','nandi','Sunrise ride')}
       <div class="stk stk-a">48<br>HRS</div>
       <div class="stk stk-b">📍 Bangalore</div>
-      <div class="stk stk-c">13 quests ✦</div>
+      <div class="stk stk-c">18 quests ✦</div>
     </div>
   </section>
   <div class="marquee" aria-hidden="true"><div class="marquee-in">${names}${names}</div></div>
@@ -927,7 +1013,7 @@ function vReveal(){
   <div class="page-head"><h2 tabindex="-1">${S.name?esc(S.name)+', y':'Y'}our three SideQuests</h2>
   <p>Built from your answers. Pick one to unlock your 48-hour plan, or swap any card for a different quest.</p></div>
   <div class="quests">${S.picks.map(questCard).join('')}</div>
-  <details class="all" ${S.allOpen?'open':''}><summary>Browse all 13 Bangalore quests</summary>
+  <details class="all" ${S.allOpen?'open':''}><summary>Browse all 18 Bangalore quests</summary>
     <div class="mini-grid">${ACTS.map(a=>`<button class="mini" data-action="choose" data-id="${a.id}"><span class="e" aria-hidden="true">${a.emoji}</span><span><b>${esc(a.name)}</b><small>${esc(a.dur)} · ${inr(a.cost[0])}–${inr(a.cost[1])}</small></span></button>`).join('')}</div>
   </details>
   <div class="step-nav"><button class="btn btn-ghost" data-action="editanswers">← Change my answers</button></div>`;
@@ -1045,19 +1131,24 @@ function vKit(){
    MINI-GAME (Obstacle Runner & Decathlon Starter Coupon)
    ========================================================== */
 const OBSTACLES = {
-  cubbon:     {name:'Park Stump',emoji:'🪵'},
-  nandi:      {name:'Ridge Boulder',emoji:'🪨'},
-  lake:       {name:'Water Puddle',emoji:'💧'},
-  badminton:  {name:'Rally Shuttle',emoji:'🪶'},
-  football:   {name:'Turf Football',emoji:'⚽'},
-  climbing:   {name:'Chalk Block',emoji:'🧱'},
-  swimming:   {name:'Water Splash',emoji:'🌊'},
-  tabletennis:{name:'Speed Ping-Pong',emoji:'🏓'},
-  run:        {name:'Track Hurdle',emoji:'🚧'},
-  yoga:       {name:'Yoga Block',emoji:'🧘'},
-  fishing:    {name:'Reel Snag',emoji:'🪝'},
-  boardgames: {name:'Dice Barrier',emoji:'🎲'},
-  archery:    {name:'Target Ring',emoji:'🎯'}
+  cubbon:       {name:'Park Stump',emoji:'🪵'},
+  nandi:        {name:'Ridge Boulder',emoji:'🪨'},
+  lake:         {name:'Water Puddle',emoji:'💧'},
+  badminton:    {name:'Rally Shuttle',emoji:'🪶'},
+  football:     {name:'Turf Football',emoji:'⚽'},
+  climbing:     {name:'Chalk Block',emoji:'🧱'},
+  swimming:     {name:'Water Splash',emoji:'🌊'},
+  tabletennis:  {name:'Speed Ping-Pong',emoji:'🏓'},
+  run:          {name:'Track Hurdle',emoji:'🚧'},
+  yoga:         {name:'Yoga Block',emoji:'🧘'},
+  cricket:      {name:'Wicket Stump',emoji:'🏏'},
+  dance:        {name:'Studio Speaker',emoji:'🔊'},
+  kayaking:     {name:'Lake Ripple',emoji:'🛶'},
+  skateboarding:{name:'Curb Barrier',emoji:'🛹'},
+  bouldering:   {name:'Granite Rock',emoji:'🪨'},
+  fishing:      {name:'Reel Snag',emoji:'🪝'},
+  boardgames:   {name:'Dice Barrier',emoji:'🎲'},
+  archery:      {name:'Target Ring',emoji:'🎯'}
 };
 
 const COUPON_TIERS = [
@@ -1069,7 +1160,7 @@ const COUPON_TIERS = [
 function genCoupon(questId,score){
   const tier=COUPON_TIERS.find(t=>score>=t.min&&score<t.max)||COUPON_TIERS[0];
   const code=Math.random().toString(36).substring(2,8).toUpperCase();
-  return {code:`DECATHLON-${questId.toUpperCase()}-${code}`,discount:tier.discount,tier:tier.tier};
+  return {code:`SIDEQUEST-${questId.toUpperCase()}-${code}`,discount:tier.discount,tier:tier.tier};
 }
 
 function vGame(){
@@ -1158,7 +1249,6 @@ function initGame(){
   canvas.addEventListener('mousedown',onClick);
 
   function spawn(){
-    // dynamic speed and obstacle positioning
     obstacles.push({
       x:W+20,
       y:groundY-32,
@@ -1173,7 +1263,6 @@ function initGame(){
     frame++;
     score+=2;
 
-    // Difficulty scaling: progressive acceleration
     if(frame%150===0){
       baseSpeed=Math.min(14.5, baseSpeed+0.45);
       spawnRate=Math.max(48, spawnRate-4);
@@ -1195,7 +1284,6 @@ function initGame(){
       const o=obstacles[i];
       o.x-=baseSpeed;
       
-      // Collision detection with tight hitbox
       const px=player.x+6, py=player.y+4, pw=player.w-12, ph=player.h-8;
       const ox=o.x+4, oy=o.y+4, ow=o.w-8, oh=o.h-8;
       
@@ -1211,7 +1299,6 @@ function initGame(){
   }
 
   function drawFrame(){
-    // Sky gradient
     ctx.clearRect(0,0,W,H);
     
     // Background clouds
@@ -1231,17 +1318,17 @@ function initGame(){
       ctx.fillRect(x,groundY+20,30,6);
     }
 
-    // DRAW PLAYER: Fixed Orientation (flips runner emoji so they face RIGHT towards obstacles)
+    // DRAW PLAYER: Horizontally flipped so runner faces forward (right)
     ctx.save();
     ctx.translate(player.x + player.w/2, player.y + player.h/2);
-    ctx.scale(-1, 1); // Flip horizontally so runner faces forward
+    ctx.scale(-1, 1);
     ctx.font='36px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
     ctx.fillText('🏃‍♂️', 0, 0);
     ctx.restore();
 
-    // DRAW OBSTACLES: Clean Emoji rendering (no ugly box borders)
+    // DRAW OBSTACLES: Clean Emoji rendering
     obstacles.forEach(o=>{
       ctx.font='34px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
       ctx.textAlign='center';
@@ -1268,7 +1355,6 @@ function initGame(){
       canvas.removeEventListener('touchstart',onTouch);
       canvas.removeEventListener('mousedown',onClick);
 
-      // Flash Game Over screen
       ctx.fillStyle='rgba(11,31,58,0.75)';
       ctx.fillRect(0,0,W,H);
       ctx.fillStyle='#FFF';
@@ -1324,7 +1410,7 @@ function vDone(){
   <section class="done">
     <div class="done-photo">${media(act)}<span class="pt-logo">${dlogo('sm')}</span><span class="stamp">🎉 KIT READY</span></div>
     <h2 tabindex="-1">Your kit is ready!</h2>
-    <p class="lede">Your ${esc(act.name)} plan and kit list are finalized. In a live Decathlon ecosystem, this instantly routes to store pickup at Decathlon Anubhava / Brigade Road or same-day doorstep dispatch.</p>
+    <p class="lede">Your ${esc(act.name)} plan and kit checklist are set. In a live journey, pick this up at your nearest Decathlon store (e.g. Decathlon Anubhava or Brigade Road) or choose same-day delivery.</p>
     
     ${S.gameCoupon ? `
     <div style="background:var(--lime);border:var(--bd);border-radius:18px;padding:1.1rem;box-shadow:var(--sh);margin-bottom:1.4rem;text-align:center">
@@ -1424,6 +1510,52 @@ document.getElementById('logo').addEventListener('click',()=>go('landing'));
 
 document.querySelectorAll('[data-dlogo]').forEach(el=>{el.outerHTML=dlogo(el.dataset.dlogo)});
 
+/* ==========================================================
+   LOBBY MUSIC (eurotrash.mp3 in root)
+   ========================================================== */
+const audioEl=document.createElement('audio');
+audioEl.id='lobbyMusic';
+audioEl.src='lobbymusic.mp3';
+audioEl.loop=true;
+audioEl.volume=0.40;
+document.body.appendChild(audioEl);
+
+let musicPlaying=false;
+function toggleMusic(){
+  if(musicPlaying){audioEl.pause();musicPlaying=false}
+  else{audioEl.play().catch(()=>{});musicPlaying=true}
+}
+
+const startMusic=()=>{
+  if(!musicPlaying){
+    audioEl.play().then(()=>{musicPlaying=true;if(muteBtn)muteBtn.innerHTML='🔊 Music'}).catch(()=>{});
+  }
+  document.removeEventListener('click',startMusic);
+  document.removeEventListener('keydown',startMusic);
+  document.removeEventListener('touchstart',startMusic);
+};
+document.addEventListener('click',startMusic,{once:true});
+document.addEventListener('keydown',startMusic,{once:true});
+document.addEventListener('touchstart',startMusic,{once:true});
+
+const muteBtn=document.createElement('button');
+muteBtn.className='pill';
+muteBtn.id='muteBtn';
+muteBtn.innerHTML='🔊 Music';
+muteBtn.style.cursor='pointer';
+muteBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  toggleMusic();
+  muteBtn.innerHTML=musicPlaying?'🔊 Music':'🔇 Muted';
+});
+const navRight=document.querySelector('.nav-right');
+if(navRight){
+  navRight.insertBefore(muteBtn,navRight.firstChild);
+}
+
+/* ==========================================================
+   BACKGROUND CHANGER
+   ========================================================== */
 const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',kit:'bg5.jpg',game:'bg5.jpg',gameresult:'bg5.jpg',done:'bg6.jpg'};
 const origGo=go;
 go=function(s){origGo(s);document.documentElement.style.setProperty('--bg-img',`url('${BG_MAP[s]||'bg1.jpg'}')`)};
