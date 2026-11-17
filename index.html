@@ -360,7 +360,7 @@ footer b{color:var(--lime)}
       <p>Product names and prices are shown for illustration, based on listings seen on decathlon.in on 10 Nov 2026, and may have changed. Items marked “~” are approximate. Product links open Decathlon’s store search in a new tab. The Decathlon name, brands, and logos are used solely for non-commercial academic demonstration. Photos are royalty-free stock imagery.</p>
     </div>
   </div>
-  <p class="made-with">Made with ❤️ by Aditya Kumar (2026305), Ankit A (2026064), Archit Gupta (2026069), Kanav Nandra (2026089), Riyanshi Natani (2026106), Suhani Ramchandani (2026116), Tanya Singh (2025113) 🏃‍♂️🏸⚽🧘🛹🏏</p>
+  <p class="made-with">Made with ❤️ by Aditya Kumar (2026305), Ankit A (2026064), Archit Gupta (2026069), Kanav Nandra (2026089), Riyanshi Natani (2026106), Suhani Ramchandani (2026116), Tanya Singh (2025113) 🏃‍♂️🏸⚽🧘🛹🏏🎯🎣🎲</p>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <noscript><p style="padding:2rem">SideQuest needs JavaScript to run. Please enable it and reload.</p></noscript>
@@ -1190,7 +1190,7 @@ function vDone(){
 }
 
 /* ==========================================================
-   QUEST CHALLENGE PLATFORMER
+   QUEST CHALLENGE PLATFORMER (Multi-Level Obstacle Sprint)
    ========================================================== */
 const OBSTACLES={
  cubbon:       {name:'Tree Branch',emoji:'🪵',color:'#2FB36B'},
@@ -1214,9 +1214,9 @@ const OBSTACLES={
 };
 
 const COUPON_TIERS=[
- {min:0,max:250,discount:10,tier:'bronze'},
- {min:250,max:500,discount:15,tier:'silver'},
- {min:500,max:99999,discount:20,tier:'gold'}
+ {min:0,max:400,discount:10,tier:'bronze'},
+ {min:400,max:800,discount:15,tier:'silver'},
+ {min:800,max:99999,discount:20,tier:'gold'}
 ];
 
 function genCoupon(questId,score){
@@ -1228,52 +1228,27 @@ function genCoupon(questId,score){
 function vGame(){
  const act=S.chosen;
  const obs=OBSTACLES[act.id]||OBSTACLES.cubbon;
-
  return `${crumbs(4)}
  <div class="page-head" style="text-align:center">
-   <h2 tabindex="-1">🎮 ${esc(act.name.split(' ')[0])} Obstacle Sprint</h2>
-   <p style="margin:0 auto">
-     Jump, duck, and time your moves through a multi-level SideQuest course.
-     Clear obstacles to unlock a starter coupon.
-   </p>
+   <h2 tabindex="-1">🎮 ${esc(act.name.split(' ')[0])} Multi-Level Sprint</h2>
+   <p style="margin:0 auto"><b>Jump</b> low/floating hazards, <b>Duck</b> under overhead bars. 1 Life! Clear obstacles to score coupons.</p>
  </div>
-
- <div id="game-container" style="
-   position:relative;
-   width:100%;
-   max-width:800px;
-   aspect-ratio:800/420;
-   background:#CFEFFF;
-   border:var(--bd);
-   border-radius:24px;
-   overflow:hidden;
-   margin:1.2rem auto;
-   box-shadow:var(--sh);
-   touch-action:none;
-   user-select:none;
-   -webkit-user-select:none;
- ">
-   <canvas id="gameCanvas" style="display:block;width:100%;height:100%"></canvas>
+ <div id="game-container" style="position:relative;width:100%;max-width:800px;aspect-ratio:800/420;background:linear-gradient(180deg,#87CEEB 0%,#E0F6FF 70%,#C8F54A 70%,#2FB36B 100%);border:var(--bd);border-radius:24px;overflow:hidden;margin:1.2rem auto;box-shadow:var(--sh);touch-action:none;user-select:none;-webkit-user-select:none">
+   <canvas id="gameCanvas" width="800" height="420" style="display:block;width:100%;height:100%"></canvas>
  </div>
-
  <div style="text-align:center;margin-top:.8rem">
-   <p style="font-weight:700;color:var(--muted);margin-bottom:.6rem">
-     Controls:
-     <b>Space / ↑ / Tap</b> = Jump ·
-     <b>↓ / Hold screen</b> = Duck
-   </p>
-
+   <p style="font-weight:700;color:var(--muted);margin-bottom:.6rem">Controls: <b>Space / ↑ / Tap Upper Half</b> = Jump · <b>↓ / Tap Lower Half</b> = Duck</p>
    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
-     <span class="chip">Low obstacles: jump</span>
-     <span class="chip">High obstacles: duck</span>
-     <span class="chip">Floating obstacles: time your jump</span>
+     <span class="chip">🪵 Low: Jump</span>
+     <span class="chip" style="background:var(--sky);color:#fff">💧 Mid-Air: High Jump</span>
+     <span class="chip" style="background:var(--fire);color:#fff">⚠️ High Barrier: Duck</span>
    </div>
  </div>
-
  <div style="display:flex;justify-content:center;gap:12px;margin-top:1rem;flex-wrap:wrap">
    <button class="btn btn-ghost" data-action="kitdone">Skip game →</button>
  </div>`;
 }
+
 function vGameResult(score,coupon){
  const tierEmoji={bronze:'🥉',silver:'🥈',gold:'🥇'}[coupon.tier];
  return `${crumbs(4)}
@@ -1296,91 +1271,35 @@ function vGameResult(score,coupon){
 function initGame(){
  const canvas=document.getElementById('gameCanvas');
  if(!canvas)return;
-
  const ctx=canvas.getContext('2d');
- const W=800,H=420;
  const dpr=Math.min(window.devicePixelRatio||1,2);
-
- canvas.width=W*dpr;
- canvas.height=H*dpr;
- ctx.setTransform(dpr,0,0,dpr,0,0);
+ const W=800,H=420;
+ canvas.width=W*dpr;canvas.height=H*dpr;
+ ctx.scale(dpr,dpr);
 
  const act=S.chosen;
  const obs=OBSTACLES[act.id]||OBSTACLES.cubbon;
-
- const INK='#0B1F3A';
- const BLUE='#0069B4';
- const SKY='#00A3E0';
- const LIME='#C8F54A';
- const SUN='#FFD23F';
- const FIRE='#FF6B2C';
- const PAPER='#FFF6E5';
-
  const groundY=340;
 
  const player={
-   x:78,
-   y:groundY-64,
-   w:44,
-   h:64,
+   x:80,
+   y:groundY-60,
+   w:42,
+   h:60,
    vy:0,
    jumping:false,
-   ducking:false,
-   duckTimer:0
+   ducking:false
  };
 
- const gravity=0.82;
- const jumpPower=-15.3;
-
+ const gravity=0.88;
+ const jumpPower=-16.2;
  const obstacles=[];
- let gameRunning=true;
- let score=0;
- let gameTime=0;
- let spawnTimer=0;
- let spawnInterval=112;
- let speed=6.8;
- let cleared=0;
- let level=1;
+ let gameRunning=true,score=0,cleared=0,level=1,gameTime=0,spawnTimer=0,spawnInterval=105;
  let dist=0;
-
- const clouds=[
-   {x:90,y:72,s:1},
-   {x:390,y:105,s:.78},
-   {x:680,y:66,s:.95}
- ];
-
- const patterns=[
-   'low',
-   'low',
-   'float',
-   'high',
-   'low',
-   'float',
-   'double',
-   'high'
- ];
-
- function currentPlayerBox(){
-   if(player.ducking && !player.jumping){
-     return {
-       x:player.x+4,
-       y:groundY-36,
-       w:player.w-8,
-       h:36
-     };
-   }
-
-   return {
-     x:player.x+6,
-     y:player.y+6,
-     w:player.w-12,
-     h:player.h-8
-   };
- }
 
  function jump(){
    if(!gameRunning)return;
-   if(!player.jumping && !player.ducking){
+   if(!player.jumping&&!player.ducking){
      player.jumping=true;
      player.vy=jumpPower;
    }
@@ -1392,7 +1311,7 @@ function initGame(){
    player.ducking=on;
  }
 
- const onKeyDown=e=>{
+ const onKey=e=>{
    if(e.code==='Space'||e.code==='ArrowUp'||e.key===' '){
      e.preventDefault();
      jump();
@@ -1402,7 +1321,6 @@ function initGame(){
      setDuck(true);
    }
  };
-
  const onKeyUp=e=>{
    if(e.code==='ArrowDown'){
      e.preventDefault();
@@ -1410,125 +1328,94 @@ function initGame(){
    }
  };
 
- const onTouchStart=e=>{
+ const onTouch=e=>{
    e.preventDefault();
-
    const rect=canvas.getBoundingClientRect();
-   const touch=e.touches && e.touches[0];
-   const y=touch ? touch.clientY-rect.top : rect.height/2;
-
-   // lower half of canvas = duck, upper half = jump
-   if(y>rect.height*.58){
+   const touch=e.touches&&e.touches[0];
+   const y=touch?(touch.clientY-rect.top):(e.clientY-rect.top);
+   if(y>rect.height*0.56){
      setDuck(true);
    }else{
      jump();
    }
  };
-
  const onTouchEnd=e=>{
    e.preventDefault();
    setDuck(false);
  };
 
- const onMouseDown=e=>{
-   const rect=canvas.getBoundingClientRect();
-   const y=e.clientY-rect.top;
-
-   if(y>rect.height*.58){
-     setDuck(true);
-   }else{
-     jump();
-   }
- };
-
- const onMouseUp=()=>setDuck(false);
-
- window.addEventListener('keydown',onKeyDown);
+ window.addEventListener('keydown',onKey);
  window.addEventListener('keyup',onKeyUp);
- canvas.addEventListener('touchstart',onTouchStart,{passive:false});
+ canvas.addEventListener('touchstart',onTouch,{passive:false});
  canvas.addEventListener('touchend',onTouchEnd,{passive:false});
- canvas.addEventListener('mousedown',onMouseDown);
- window.addEventListener('mouseup',onMouseUp);
+ canvas.addEventListener('mousedown',onTouch);
+ window.addEventListener('mouseup',()=>setDuck(false));
 
  function cleanup(){
-   window.removeEventListener('keydown',onKeyDown);
+   window.removeEventListener('keydown',onKey);
    window.removeEventListener('keyup',onKeyUp);
-   canvas.removeEventListener('touchstart',onTouchStart);
+   canvas.removeEventListener('touchstart',onTouch);
    canvas.removeEventListener('touchend',onTouchEnd);
-   canvas.removeEventListener('mousedown',onMouseDown);
-   window.removeEventListener('mouseup',onMouseUp);
+   canvas.removeEventListener('mousedown',onTouch);
  }
 
- function makeObstacle(type,xOffset=0){
+ function makeObstacle(type,xOff=0){
    let o={
-     x:W+30+xOffset,
+     x:W+20+xOff,
      type,
      emoji:obs.emoji,
      passed:false,
      pulse:Math.random()*Math.PI*2
    };
-
    if(type==='low'){
      o.y=groundY-38;
+     o.w=36;
+     o.h=38;
+   }else if(type==='float'){
+     o.y=groundY-115;
      o.w=38;
      o.h=38;
-     o.label='LOW';
-   }
-
-   if(type==='float'){
-     o.y=groundY-108;
-     o.w=40;
+   }else if(type==='high'){
+     o.y=groundY-128;
+     o.w=54;
      o.h=40;
-     o.label='MID';
    }
-
-   if(type==='high'){
-     o.y=groundY-125;
-     o.w=52;
-     o.h=38;
-     o.label='DUCK';
-   }
-
    return o;
  }
 
  function spawn(){
-   const pattern=patterns[(cleared+level)%patterns.length];
-
-   if(pattern==='double' && level>=3){
+   const roll=Math.random();
+   if(level>=3&&roll<0.32){
      obstacles.push(makeObstacle('low',0));
-     obstacles.push(makeObstacle('float',145));
+     obstacles.push(makeObstacle('float',155));
+   }else if(level>=2&&roll<0.62){
+     obstacles.push(makeObstacle('high',0));
+   }else if(roll<0.82){
+     obstacles.push(makeObstacle('low',0));
    }else{
-     let type=pattern;
-
-     if(level<2 && type==='high')type='low';
-     if(level<2 && type==='float')type='low';
-
-     obstacles.push(makeObstacle(type,0));
+     obstacles.push(makeObstacle('float',0));
    }
  }
 
  function update(){
    if(!gameRunning)return;
-
    gameTime++;
    spawnTimer++;
 
-   level=1+Math.floor(cleared/5);
-
-   speed=6.8+Math.min(5.4,cleared*.18+gameTime/900);
-   spawnInterval=Math.max(58,112-level*7);
+   level=1+Math.floor(cleared/4);
+   const speed=7.2+Math.min(5.8,cleared*0.24+gameTime/700);
+   spawnInterval=Math.max(54,105-level*6);
 
    if(spawnTimer>spawnInterval){
      spawn();
      spawnTimer=0;
    }
 
-   if(player.ducking && !player.jumping){
-     player.y=groundY-36;
-     player.h=36;
+   if(player.ducking&&!player.jumping){
+     player.y=groundY-34;
+     player.h=34;
    }else{
-     player.h=64;
+     player.h=60;
      if(!player.jumping)player.y=groundY-player.h;
    }
 
@@ -1543,381 +1430,244 @@ function initGame(){
 
    dist+=speed;
 
-   const pb=currentPlayerBox();
+   const pBox=player.ducking&&!player.jumping
+     ?{x:player.x+4,y:groundY-34,w:player.w-6,h:34}
+     :{x:player.x+6,y:player.y+4,w:player.w-12,h:player.h-6};
 
    for(let i=obstacles.length-1;i>=0;i--){
      const o=obstacles[i];
      o.x-=speed;
 
-     if(!o.passed && o.x+o.w<player.x){
+     // Score when passing obstacle (+50 per cleared obstacle)
+     if(!o.passed&&o.x+o.w<player.x){
        o.passed=true;
        score+=50;
        cleared++;
      }
 
-     const pad=7;
-     const ox=o.x+pad;
-     const oy=o.y+pad;
-     const ow=o.w-pad*2;
-     const oh=o.h-pad*2;
+     const pad=6;
+     const ox=o.x+pad, oy=o.y+pad, ow=o.w-pad*2, oh=o.h-pad*2;
 
-     if(
-       pb.x<ox+ow &&
-       pb.x+pb.w>ox &&
-       pb.y<oy+oh &&
-       pb.y+pb.h>oy
-     ){
+     if(pBox.x<ox+ow && pBox.x+pBox.w>ox && pBox.y<oy+oh && pBox.y+pBox.h>oy){
        gameRunning=false;
      }
 
-     if(o.x<-80)obstacles.splice(i,1);
+     if(o.x<-70)obstacles.splice(i,1);
    }
- }
-
- function rr(x,y,w,h,r){
-   ctx.beginPath();
-   ctx.moveTo(x+r,y);
-   ctx.arcTo(x+w,y,x+w,y+h,r);
-   ctx.arcTo(x+w,y+h,x,y+h,r);
-   ctx.arcTo(x,y+h,x,y,r);
-   ctx.arcTo(x,y,x+w,y,r);
-   ctx.closePath();
- }
-
- function drawCloud(x,y,s){
-   ctx.beginPath();
-   ctx.arc(x,y,22*s,0,Math.PI*2);
-   ctx.arc(x+26*s,y-10*s,29*s,0,Math.PI*2);
-   ctx.arc(x+56*s,y,23*s,0,Math.PI*2);
-   ctx.fill();
- }
-
- function drawHills(offset,amp,period,color){
-   ctx.fillStyle=color;
-   ctx.beginPath();
-   ctx.moveTo(0,groundY);
-
-   for(let x=0;x<=W;x+=8){
-     ctx.lineTo(x,groundY-amp*(.55+.45*Math.sin((x+offset)/period)));
-   }
-
-   ctx.lineTo(W,groundY);
-   ctx.closePath();
-   ctx.fill();
  }
 
  function drawPlayer(){
-   const duck=player.ducking && !player.jumping;
-   const x=player.x;
-   const y=duck ? groundY-36 : player.y;
-   const w=player.w;
-   const h=duck ? 36 : player.h;
+   const duck=player.ducking&&!player.jumping;
+   const x=player.x, y=duck?groundY-34:player.y;
+   const w=player.w, h=duck?34:player.h;
 
-   // Shadow
+   // Crisp Ground Shadow
    const lift=(groundY-player.h)-player.y;
-   ctx.fillStyle='rgba(11,31,58,.22)';
+   ctx.fillStyle='rgba(11,31,58,0.25)';
    ctx.beginPath();
-   ctx.ellipse(x+w/2,groundY+4,duck?26:Math.max(12,23-lift*.06),5,0,0,Math.PI*2);
+   ctx.ellipse(x+w/2,groundY+4,duck?24:Math.max(10,20-lift*0.06),5,0,Math.PI*2);
    ctx.fill();
 
-   // Body
    ctx.save();
    ctx.translate(x,y);
 
    if(duck){
-     // Crouched runner
-     ctx.fillStyle=INK;
-     rr(0,10,w,24,12);
-     ctx.fill();
-
-     ctx.fillStyle=BLUE;
-     rr(4,14,w-8,16,8);
-     ctx.fill();
-
-     ctx.fillStyle=SUN;
-     ctx.beginPath();
-     ctx.arc(w-5,8,11,0,Math.PI*2);
-     ctx.fill();
-     ctx.lineWidth=2.5;
-     ctx.strokeStyle=INK;
-     ctx.stroke();
-
-     ctx.fillStyle=INK;
-     ctx.fillRect(8,31,19,5);
-     ctx.fillRect(24,31,18,5);
-   }else{
-     // Clear visible mascot-style runner
-     ctx.fillStyle=INK;
-     rr(8,18,28,34,12);
-     ctx.fill();
-
-     ctx.fillStyle=BLUE;
-     rr(11,21,22,28,10);
-     ctx.fill();
+     // Ducking character
+     ctx.fillStyle='#0B1F3A';
+     ctx.fillRect(2,10,w-4,20);
+     ctx.fillStyle='#0069B4';
+     ctx.fillRect(4,12,w-8,14);
 
      // Head
-     ctx.fillStyle=SUN;
+     ctx.fillStyle='#FFD23F';
+     ctx.beginPath();ctx.arc(w-4,9,11,0,Math.PI*2);ctx.fill();
+     ctx.lineWidth=2.5;ctx.strokeStyle='#0B1F3A';ctx.stroke();
+
+     // Decathlon logo stripe
+     ctx.fillStyle='#C8F54A';
+     ctx.fillRect(10,18,10,4);
+   }else{
+     // High-Visibility Solid Vector Athlete
+     // Legs / Stride animation
+     const legSwing=Math.sin(gameTime*0.35)*14;
+     ctx.lineWidth=6;
+     ctx.lineCap='round';
+     ctx.strokeStyle='#0B1F3A';
+
+     // Back Leg
      ctx.beginPath();
-     ctx.arc(24,10,13,0,Math.PI*2);
+     ctx.moveTo(18,44);
+     ctx.lineTo(8-legSwing*0.6,58);
+     ctx.stroke();
+
+     // Front Leg
+     ctx.beginPath();
+     ctx.moveTo(26,44);
+     ctx.lineTo(34+legSwing*0.6,58);
+     ctx.stroke();
+
+     // Solid Torso (Decathlon Navy & Blue)
+     ctx.fillStyle='#0B1F3A';
+     ctx.fillRect(10,16,24,30);
+     ctx.fillStyle='#0069B4';
+     ctx.fillRect(13,19,18,24);
+
+     // Decathlon Lime Sprint Badge
+     ctx.fillStyle='#C8F54A';
+     ctx.fillRect(16,26,12,6);
+
+     // Head (High contrast yellow)
+     ctx.fillStyle='#FFD23F';
+     ctx.beginPath();
+     ctx.arc(22,10,12,0,Math.PI*2);
      ctx.fill();
      ctx.lineWidth=3;
-     ctx.strokeStyle=INK;
+     ctx.strokeStyle='#0B1F3A';
      ctx.stroke();
 
-     // Face direction indicator
-     ctx.fillStyle=INK;
-     ctx.beginPath();
-     ctx.arc(30,8,2.2,0,Math.PI*2);
-     ctx.fill();
+     // Eye focus
+     ctx.fillStyle='#0B1F3A';
+     ctx.beginPath();ctx.arc(27,9,2.2,0,Math.PI*2);ctx.fill();
 
-     // Arm forward
+     // Arms (Active forward drive)
      ctx.lineWidth=5;
-     ctx.lineCap='round';
-     ctx.strokeStyle=INK;
+     ctx.strokeStyle='#0B1F3A';
      ctx.beginPath();
-     ctx.moveTo(32,27);
-     ctx.lineTo(45,18);
-     ctx.stroke();
-
-     // Arm back
-     ctx.beginPath();
-     ctx.moveTo(12,29);
-     ctx.lineTo(0,37);
-     ctx.stroke();
-
-     // Legs
-     ctx.beginPath();
-     ctx.moveTo(20,50);
-     ctx.lineTo(8,63);
+     ctx.moveTo(22,23);
+     ctx.lineTo(38,18+legSwing*0.5);
      ctx.stroke();
 
      ctx.beginPath();
-     ctx.moveTo(29,50);
-     ctx.lineTo(44,61);
+     ctx.moveTo(14,24);
+     ctx.lineTo(2,32-legSwing*0.5);
      ctx.stroke();
-
-     // Decathlon-style chest mark
-     ctx.fillStyle=LIME;
-     ctx.fillRect(18,31,9,5);
    }
-
    ctx.restore();
  }
 
  function drawObstacle(o){
-   const bob=Math.sin(gameTime*.08+o.pulse)*2;
+   const bob=Math.sin(gameTime*0.1+o.pulse)*3;
 
-   // Shadow only for lower/mid objects
-   ctx.fillStyle='rgba(11,31,58,.18)';
+   // Ground shadow
+   ctx.fillStyle='rgba(11,31,58,0.2)';
    ctx.beginPath();
-   ctx.ellipse(o.x+o.w/2,groundY+4,18,4,0,0,Math.PI*2);
+   ctx.ellipse(o.x+o.w/2,groundY+4,16,4,0,Math.PI*2);
    ctx.fill();
 
    if(o.type==='high'){
-     // overhead banner obstacle
-     ctx.fillStyle=INK;
-     rr(o.x+3,o.y+3,o.w,o.h,12);
-     ctx.fill();
+     // Overhead High Barrier
+     ctx.fillStyle='#FF6B2C';
+     ctx.fillRect(o.x,o.y,o.w,o.h);
+     ctx.lineWidth=3;
+     ctx.strokeStyle='#0B1F3A';
+     ctx.strokeRect(o.x,o.y,o.w,o.h);
 
-     ctx.fillStyle=FIRE;
-     rr(o.x,o.y,o.w,o.h,12);
-     ctx.fill();
-
-     ctx.lineWidth=2.5;
-     ctx.strokeStyle=INK;
-     rr(o.x,o.y,o.w,o.h,12);
-     ctx.stroke();
-
-     ctx.font='22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+     ctx.font='22px sans-serif';
      ctx.textAlign='center';
      ctx.textBaseline='middle';
-     ctx.fillText(o.emoji,o.x+o.w/2,o.y+o.h/2+1);
+     ctx.fillText('⚠️',o.x+o.w/2,o.y+o.h/2);
 
-     ctx.fillStyle=INK;
-     ctx.font='800 9px "DM Sans",sans-serif';
-     ctx.fillText('DUCK',o.x+o.w/2,o.y-7);
+     ctx.fillStyle='#0B1F3A';
+     ctx.font='800 10px "DM Sans",sans-serif';
+     ctx.fillText('DUCK!',o.x+o.w/2,o.y-8);
      return;
    }
 
-   // circular token obstacle
-   ctx.fillStyle=INK;
-   ctx.beginPath();
-   ctx.arc(o.x+o.w/2+3,o.y+o.h/2+3+bob,o.w/2,0,Math.PI*2);
-   ctx.fill();
-
-   ctx.fillStyle=o.type==='float'?SKY:FIRE;
+   // Ground or Floating Bubble
+   ctx.fillStyle=o.type==='float'?'#00A3E0':'#FF6B2C';
    ctx.beginPath();
    ctx.arc(o.x+o.w/2,o.y+o.h/2+bob,o.w/2,0,Math.PI*2);
    ctx.fill();
-
    ctx.lineWidth=2.5;
-   ctx.strokeStyle=INK;
+   ctx.strokeStyle='#0B1F3A';
    ctx.stroke();
 
-   ctx.font='23px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+   ctx.font='24px sans-serif';
    ctx.textAlign='center';
    ctx.textBaseline='middle';
    ctx.fillText(o.emoji,o.x+o.w/2,o.y+o.h/2+bob+1);
 
    if(o.type==='float'){
-     ctx.fillStyle=INK;
-     ctx.font='800 9px "DM Sans",sans-serif';
-     ctx.fillText('JUMP',o.x+o.w/2,o.y-8);
+     ctx.fillStyle='#0B1F3A';
+     ctx.font='800 10px "DM Sans",sans-serif';
+     ctx.fillText('HIGH JUMP',o.x+o.w/2,o.y-9);
    }
- }
-
- function drawHudPill(text,x,y,bg){
-   ctx.font='800 16px "DM Sans",sans-serif';
-   const tw=ctx.measureText(text).width;
-   const w=tw+26;
-   const h=32;
-
-   ctx.fillStyle=INK;
-   rr(x+3,y+3,w,h,16);
-   ctx.fill();
-
-   ctx.fillStyle=bg;
-   rr(x,y,w,h,16);
-   ctx.fill();
-
-   ctx.lineWidth=2.5;
-   ctx.strokeStyle=INK;
-   rr(x,y,w,h,16);
-   ctx.stroke();
-
-   ctx.fillStyle=INK;
-   ctx.textAlign='left';
-   ctx.textBaseline='middle';
-   ctx.fillText(text,x+13,y+h/2+1);
-
-   return w;
  }
 
  function drawFrame(){
-   // Sky
+   // Clear Sky
    const sky=ctx.createLinearGradient(0,0,0,groundY);
-   sky.addColorStop(0,'#8FD3FF');
-   sky.addColorStop(1,'#E8F8FF');
-   ctx.fillStyle=sky;
-   ctx.fillRect(0,0,W,groundY);
+   sky.addColorStop(0,'#7BC6F7');sky.addColorStop(1,'#DCF2FF');
+   ctx.fillStyle=sky;ctx.fillRect(0,0,W,groundY);
 
    // Sun
-   ctx.fillStyle=SUN;
-   ctx.beginPath();
-   ctx.arc(W-112,92,34,0,Math.PI*2);
-   ctx.fill();
-   ctx.lineWidth=3;
-   ctx.strokeStyle=INK;
-   ctx.stroke();
+   ctx.fillStyle='#FFD23F';ctx.beginPath();ctx.arc(W-110,85,32,0,Math.PI*2);ctx.fill();
+   ctx.lineWidth=3;ctx.strokeStyle='#0B1F3A';ctx.stroke();
 
-   // Clouds
-   ctx.fillStyle='rgba(255,255,255,.88)';
-   clouds.forEach(c=>{
-     const span=W+180;
-     const cx=((c.x-dist*.08)%span+span)%span-90;
-     drawCloud(cx,c.y,c.s);
-   });
-
-   // Hills
-   drawHills(dist*.12,68,120,'#B9E8C2');
-   drawHills(dist*.32,42,75,'#88D49E');
+   // Horizon hills
+   ctx.fillStyle='#A6E3B3';
+   ctx.beginPath();ctx.moveTo(0,groundY);
+   for(let x=0;x<=W;x+=10)ctx.lineTo(x,groundY-45-Math.sin((x+dist*0.2)/90)*24);
+   ctx.lineTo(W,groundY);ctx.closePath();ctx.fill();
 
    // Ground
-   ctx.fillStyle='#2FB36B';
-   ctx.fillRect(0,groundY,W,H-groundY);
+   ctx.fillStyle='#2FB36B';ctx.fillRect(0,groundY,W,H-groundY);
+   ctx.fillStyle='#C8F54A';ctx.fillRect(0,groundY,W,10);
+   ctx.fillStyle='#0B1F3A';ctx.fillRect(0,groundY,W,3);
 
-   ctx.fillStyle=LIME;
-   ctx.fillRect(0,groundY,W,10);
-
-   ctx.fillStyle=INK;
-   ctx.fillRect(0,groundY,W,3);
-
-   // Motion stripes
-   ctx.fillStyle='rgba(255,255,255,.35)';
-   const stripeOffset=dist%64;
-   for(let x=-stripeOffset;x<W;x+=64){
-     ctx.fillRect(x,groundY+44,34,5);
+   // Track dash lines
+   ctx.fillStyle='rgba(255,255,255,0.4)';
+   const stripe=dist%60;
+   for(let x=-stripe;x<W;x+=60){
+     ctx.fillRect(x,groundY+42,32,6);
    }
 
-   // Obstacles
+   // Obstacles & Player
    obstacles.forEach(drawObstacle);
-
-   // Player
    drawPlayer();
 
-   // HUD
-   drawHudPill(`Score ${score}`,18,18,LIME);
-   drawHudPill(`Level ${level}`,18,58,SUN);
+   // Score & Level HUD
+   ctx.fillStyle='#0B1F3A';
+   ctx.font='800 20px "DM Sans", sans-serif';
+   ctx.textAlign='left';
+   ctx.fillText(`Score: ${score}`,24,36);
+   ctx.fillText(`Level ${level}`,180,36);
 
    const nextTier=COUPON_TIERS.find(t=>score<t.min);
-   const rewardText=nextTier
-     ? `Next: ${nextTier.discount}% at ${nextTier.min}`
-     : `Max reward unlocked`;
-
-   const rightText=rewardText;
-   ctx.font='800 16px "DM Sans",sans-serif';
-   const rightWidth=ctx.measureText(rightText).width+26;
-   drawHudPill(rightText,W-rightWidth-18,18,PAPER);
+   const status=nextTier?`Next: ${nextTier.discount}% off at ${nextTier.min}`:`🥇 Max 20% Unlocked!`;
+   ctx.textAlign='right';
+   ctx.fillText(status,W-24,36);
  }
 
- const STEP=1000/60;
- let last=0;
- let acc=0;
-
- function loop(now){
-   if(!canvas.isConnected){
-     cleanup();
-     return;
-   }
-
-   if(!last)last=now;
-   acc+=Math.min(100,now-last);
-   last=now;
-
-   while(acc>=STEP && gameRunning){
-     update();
-     acc-=STEP;
-   }
-
+ function loop(){
+   update();
    drawFrame();
-
    if(gameRunning){
      requestAnimationFrame(loop);
-     return;
+   } else {
+     cleanup();
+     ctx.fillStyle='rgba(11,31,58,0.74)';
+     ctx.fillRect(0,0,W,H);
+     ctx.fillStyle='#fff';
+     ctx.font='800 38px "Bricolage Grotesque", sans-serif';
+     ctx.textAlign='center';
+     ctx.fillText('Sprint Finished!',W/2,H/2-10);
+     ctx.font='700 20px "DM Sans", sans-serif';
+     ctx.fillStyle='#C8F54A';
+     ctx.fillText(`Final Score: ${score}`,W/2,H/2+28);
+
+     const coupon=genCoupon(act.id,score);
+     S.gameScore=score;S.gameCoupon=coupon;
+     setTimeout(()=>{
+       S.screen='gameresult';
+       $app.innerHTML=vGameResult(score,coupon);
+       attachGameResultHandlers();
+     },1200);
    }
-
-   cleanup();
-
-   ctx.fillStyle='rgba(11,31,58,.74)';
-   ctx.fillRect(0,0,W,H);
-
-   ctx.textAlign='center';
-   ctx.textBaseline='alphabetic';
-
-   ctx.fillStyle='#fff';
-   ctx.font='800 40px "Bricolage Grotesque", sans-serif';
-   ctx.fillText('Quest finished!',W/2,H/2-10);
-
-   ctx.fillStyle=LIME;
-   ctx.font='700 20px "DM Sans", sans-serif';
-   ctx.fillText(`Final score: ${score}`,W/2,H/2+28);
-
-   const coupon=genCoupon(act.id,score);
-   S.gameScore=score;
-   S.gameCoupon=coupon;
-
-   setTimeout(()=>{
-     if(S.screen!=='game')return;
-     S.screen='gameresult';
-     $app.innerHTML=vGameResult(score,coupon);
-     attachGameResultHandlers();
-   },1200);
  }
-
  requestAnimationFrame(loop);
-} 
-   requestAnimationFrame(t=>{last=t;drawFrame();requestAnimationFrame(loop);});
 }
+
 function attachGameResultHandlers(){
  const btn=document.getElementById('copyCoupon');
  if(btn){
