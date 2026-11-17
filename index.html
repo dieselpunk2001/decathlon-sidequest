@@ -1465,7 +1465,7 @@ function initGame(){
    const lift=(groundY-player.h)-player.y;
    ctx.fillStyle='rgba(11,31,58,0.25)';
    ctx.beginPath();
-   ctx.ellipse(x+w/2,groundY+4,duck?24:Math.max(10,20-lift*0.06),5,0,Math.PI*2);
+   ctx.ellipse(x+w/2,groundY+4,duck?24:Math.max(10,20-lift*0.06),5,0,0,Math.PI*2);
    ctx.fill();
 
    ctx.save();
@@ -1551,7 +1551,7 @@ function initGame(){
    // Ground shadow
    ctx.fillStyle='rgba(11,31,58,0.2)';
    ctx.beginPath();
-   ctx.ellipse(o.x+o.w/2,groundY+4,16,4,0,Math.PI*2);
+  ctx.ellipse(o.x+o.w/2,groundY+4,16,4,0,0,Math.PI*2);
    ctx.fill();
 
    if(o.type==='high'){
