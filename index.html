@@ -758,7 +758,7 @@ const ITEMS = {
  yogapants:{n:'Domyos High-Waisted Second-Skin Long Yoga Leggings - Black',s:'Domyos yoga leggings',brand:'Domyos',e:'👖',p:699,mrp:2249,v:1,q:'Domyos high-waisted yoga leggings',
    w:'Opaque second-skin stretch fabric with wide waistband that stays put.',up:'Seamless dynamic studio leggings for hot yoga flows.'},
 
- /* New product entries */
+ /* Additional gear items */
  skateboard:{n:'Oxelo Skateboard Complete Mid 100 Skull - 31 Inch',s:'Oxelo Complete Skateboard',brand:'Oxelo',e:'🛹',p:1999,mrp:2999,v:1,q:'Oxelo skateboard complete',
    w:'7-ply birch deck with soft 92A polyurethane wheels for smooth cruising control.',up:'Oxelo 500 concave street deck for kickflips and skatepark bowls.'},
  skatehelmet:{n:'Btwin / Oxelo Urban Skating Skateboarding Helmet MF500',s:'Oxelo Skate Helmet',brand:'Oxelo',e:'⛑️',p:1599,mrp:2199,v:1,q:'Oxelo skating helmet MF500',
@@ -772,7 +772,6 @@ const ITEMS = {
  drybag:{n:'Itiwit Waterproof Dry Bag 10L - IPX6 Water Resistant',s:'Itiwit 10L Dry Bag',brand:'Itiwit',e:'🎒',p:699,mrp:1199,v:1,q:'Itiwit dry bag 10L',
    w:'Roll-top watertight closure protects your phone, keys, and dry clothes on water.',up:'30L backpack dry bag with shoulder straps for kayak expeditions.'},
 
- /* Optional extras */
  cap:{n:'Decathlon Breathable Running Cap',e:'🧢',p:249,w:'Shields your eyes and absorbs forehead sweat on sunny mornings.'},
  socks:{n:'Kalenji Sport Running Socks (Pack of 3)',e:'🧦',p:299,w:'Reinforced heel and toe zones stop friction blisters.'},
  gloves:{n:'Btwin 100 Cycling Mitts / Gloves',e:'🧤',p:349,w:'Gel palm padding softens handlebar vibration on long rides.'},
@@ -874,37 +873,31 @@ function media(act){
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
 
 /* ==========================================================
-   BALANCED RECOMMENDATION ENGINE
+   RECOMMENDATION ENGINE
    ========================================================== */
 function groupKey(){return optOf('company',S.a.company).g}
 function score(act){
   const A=S.a,b=A.blockers,why=[];let s=0;
   
-  // Energy match
   const [lo,hi]=act.energy,e=A.energy;
   if(e>=lo&&e<=hi){s+=12;why.push(`Right energy for “${optOf('energy',e).t}”`)} 
   else {const gap=e<lo?lo-e:e-hi;s-=gap*4}
   
-  // Vibe matches
   const vm=act.scenes.filter(x=>A.vibes.includes(x));
   s+=vm.length*5; if(vm.length) why.push(`Matches your ${vm.map(v=>VIBE_LABEL[v]).join(' + ')} vibe`);
   
-  // Time window
   if(A.window==='full'){s+=3;if(act.long){s+=4;why.push('Uses your whole weekend well')}}
   else if(act.times.includes(A.window)){s+=6;why.push(`Works well for ${optOf('window',A.window).t.toLowerCase()}`)}
   if(act.avoid.includes(A.window)) s-=12;
   
-  // Company
   const g=groupKey();
   if(act.company.includes(g)){s+=7;why.push(`Good for ${CO_LABEL[g]}`)} else s-=6;
   if(g==='solo'&&!act.soloOk) s-=8;
   
-  // Budget
   const cap=A.budget;
   if(act.cost[0]>cap) s-=10; 
   else if(act.cost[1]<=cap){s+=4;why.push('Activity cost stays within budget')}
   
-  // Blockers
   if(b.includes('gear')){s+=(3-act.gear)*3; if(act.gear<=1) why.push('Needs very little gear to begin')}
   if(b.includes('start')&&act.beginner){s+=5;why.push('Beginner-friendly first session')}
   if(b.includes('friends')){ if(act.soloOk){s+=6;why.push('Still works if friends cancel')} else s-=4 }
@@ -979,7 +972,7 @@ function vLanding(){
       <div class="how-card"><span class="n">1</span><h3>Build your weekend</h3><p>Six quick, playful picks: your window, energy, vibe, blockers, crew, and budget.</p></div>
       <div class="how-card"><span class="n">2</span><h3>Meet 3 quests</h3><p>A Best Match, an Easy Backup, and a Wildcard, each with clear reasons why it fits.</p></div>
       <div class="how-card"><span class="n">3</span><h3>Get the 48-hour plan</h3><p>Before, during, and after timeline plus a Plan B for weather or a flaky group chat.</p></div>
-      <div class="how-card"><span class="n">4</span><h3>Pack light & Play</h3><p>Mark what you own, take the quest minigame challenge, and unlock starter rewards.</p></div>
+      <div class="how-card"><span class="n">4</span><h3>Pack light & Play</h3><p>Mark what you own, take the 3D race challenge, and unlock starter rewards.</p></div>
     </div>
   </section>`;
 }
@@ -1149,7 +1142,7 @@ function vKit(){
       <div class="gauge" role="img" aria-label="${pct}% of budget"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
       <p class="note">${all?'No budget cap set.':over?`A little over your ${inr(cap)} budget. Try moving an item to “Later” or “Have it”.`:`Within your ${inr(cap)} budget. Solid.`}</p>
       <div class="actions" style="margin-top:1rem">
-        <button class="btn btn-sun btn-lg" data-action="startgame" style="width:100%">🎮 Play Quest Challenge — Unlock Coupon!</button>
+        <button class="btn btn-sun btn-lg" data-action="startgame" style="width:100%">🎮 Race to ${esc(act.name.split(' ')[0])} — 3D Challenge</button>
         <button class="btn btn-lime" data-action="kitdone" style="width:100%">Skip directly to summary →</button>
       </div>
       <p class="note">Prices as listed on decathlon.in on ${PRICE_DATE}. “~” indicates approximate.</p>
@@ -1190,58 +1183,46 @@ function vDone(){
 }
 
 /* ==========================================================
-   QUEST CHALLENGE PLATFORMER
+   3D DESTINATION RUNNER (Perspective Canvas Engine)
    ========================================================== */
-const OBSTACLES={
- cubbon:       {name:'Tree Branch',emoji:'🪵',color:'#2FB36B'},
- nandi:        {name:'Rock',emoji:'🪨',color:'#FF6B2C'},
- lake:         {name:'Puddle',emoji:'💧',color:'#0069B4'},
- badminton:    {name:'Shuttlecock',emoji:'🪶',color:'#FF9DBB'},
- football:     {name:'Football',emoji:'⚽',color:'#2FB36B'},
- climbing:     {name:'Chalk Block',emoji:'🧱',color:'#9B5DE5'},
- swimming:     {name:'Splash Wave',emoji:'🌊',color:'#00A3E0'},
- tabletennis:  {name:'Ping Pong Ball',emoji:'⚪',color:'#FF6B2C'},
- run:          {name:'Track Hurdle',emoji:'🚧',color:'#00A3E0'},
- yoga:         {name:'Foam Block',emoji:'🧘',color:'#FF9DBB'},
- skateboarding:{name:'Street Cone',emoji:'⚠️',color:'#FF6B2C'},
- rockclimbing: {name:'Boulder Edge',emoji:'🪨',color:'#9B5DE5'},
- cricket:      {name:'Wicket Stump',emoji:'🏏',color:'#2FB36B'},
- dance:        {name:'Studio Speaker',emoji:'🔊',color:'#FF9DBB'},
- kayaking:     {name:'Lake Ripple',emoji:'🛶',color:'#00A3E0'},
- fishing:      {name:'Reel Snag',emoji:'🪝',color:'#0069B4'},
- boardgames:   {name:'Dice Block',emoji:'🎲',color:'#FFD23F'},
- archery:      {name:'Target Ring',emoji:'🎯',color:'#FF6B2C'}
+const THEMES={
+ cubbon:       {sky:'#7BC6F7',ground:'#2FB36B',track:'#4CAF50',scenery:'trees',dest:'🌳 Cubbon Bandstand'},
+ nandi:        {sky:'#FFB347',ground:'#D4A373',track:'#8D6E63',scenery:'rocks',dest:'🚴 Nandi Sunrise Summit'},
+ lake:         {sky:'#64B5F6',ground:'#4DB6AC',track:'#80DEEA',scenery:'water',dest:'🏞️ Lakeside Promenade'},
+ badminton:    {sky:'#81D4FA',ground:'#26A69A',track:'#FFCC80',scenery:'arena',dest:'🏸 Matchpoint Arena'},
+ football:     {sky:'#80CBC4',ground:'#388E3C',track:'#2E7D32',scenery:'stadium',dest:'⚽ Turf Central'},
+ climbing:     {sky:'#B39DDB',ground:'#7E57C2',track:'#5E35B1',scenery:'climb',dest:'🧗 Bouldering Gym'},
+ swimming:     {sky:'#4FC3F7',ground:'#0288D1',track:'#03A9F4',scenery:'water',dest:'🏊 Olympic Aquatic Pool'},
+ tabletennis:  {sky:'#FFAB91',ground:'#FF7043',track:'#F4511E',scenery:'arena',dest:'🏓 Table Tennis Club'},
+ run:          {sky:'#80DEEA',ground:'#43A047',track:'#E53935',scenery:'track',dest:'🏃 3K Finish Arch'},
+ yoga:         {sky:'#F48FB1',ground:'#CE93D8',track:'#E1BEE7',scenery:'trees',dest:'🧘 Peaceful Deck'},
+ skateboarding:{sky:'#FFCC80',ground:'#78909C',track:'#546E7A',scenery:'city',dest:'🛹 Sarjapur Skatepark'},
+ rockclimbing: {sky:'#D7CCC8',ground:'#8D6E63',track:'#6D4C41',scenery:'rocks',dest:'🧗‍♂️ Turahalli Granite Crag'},
+ cricket:      {sky:'#A5D6A7',ground:'#4CAF50',track:'#81C784',scenery:'stadium',dest:'🏏 Box Cricket Arena'},
+ dance:        {sky:'#CE93D8',ground:'#BA68C8',track:'#AB47BC',scenery:'arena',dest:'💃 Movement Studio'},
+ kayaking:     {sky:'#80D8FF',ground:'#00B0FF',track:'#0091EA',scenery:'water',dest:'🛶 Backwater Launch'},
+ fishing:      {sky:'#90CAF9',ground:'#5C6BC0',track:'#3F51B5',scenery:'water',dest:'🎣 Lakeside Fishing Dock'},
+ boardgames:   {sky:'#FFE082',ground:'#FFB74D',track:'#FFA726',scenery:'city',dest:'🎲 Board Game Café'},
+ archery:      {sky:'#FFAB91',ground:'#81C784',track:'#388E3C',scenery:'arena',dest:'🎯 Archery Range'}
 };
-
-const COUPON_TIERS=[
- {min:0,max:350,discount:10,tier:'bronze'},
- {min:350,max:750,discount:15,tier:'silver'},
- {min:750,max:99999,discount:20,tier:'gold'}
-];
-
-function genCoupon(questId,score){
- const tier=COUPON_TIERS.find(t=>score>=t.min&&score<t.max)||COUPON_TIERS[0];
- const code=Math.random().toString(36).substring(2,8).toUpperCase();
- return {code:`SIDEQUEST-${questId.toUpperCase()}-${code}`,discount:tier.discount,tier:tier.tier};
-}
 
 function vGame(){
  const act=S.chosen;
- const obs=OBSTACLES[act.id]||OBSTACLES.cubbon;
+ const theme=THEMES[act.id]||THEMES.cubbon;
  return `${crumbs(4)}
  <div class="page-head" style="text-align:center">
-   <h2 tabindex="-1">🎮 ${esc(act.name.split(' ')[0])} Obstacle Sprint</h2>
-   <p style="margin:0 auto"><b>Space / Tap Top</b> to Jump. <b>Down / Tap Bottom</b> to Duck. Clear hazards to win vouchers!</p>
+   <h2 tabindex="-1">🏃 3D Road to ${esc(act.name.split(' ')[0])}</h2>
+   <p style="margin:0 auto">Steer 3 lanes, <b>Jump</b> hurdles &amp; <b>Duck</b> signs. Reach the finish to unlock up to <b>20% off!</b></p>
  </div>
- <div id="game-container" style="position:relative;width:100%;max-width:800px;aspect-ratio:800/420;background:linear-gradient(180deg,#87CEEB 0%,#E0F6FF 70%,#C8F54A 70%,#2FB36B 100%);border:var(--bd);border-radius:24px;overflow:hidden;margin:1.2rem auto;box-shadow:var(--sh);touch-action:none;user-select:none;-webkit-user-select:none">
+ <div id="game-container" style="position:relative;width:100%;max-width:800px;aspect-ratio:800/420;border:var(--bd);border-radius:24px;overflow:hidden;margin:1.2rem auto;box-shadow:var(--sh);touch-action:none;user-select:none;-webkit-user-select:none">
    <canvas id="gameCanvas" width="800" height="420" style="display:block;width:100%;height:100%"></canvas>
  </div>
  <div style="text-align:center;margin-top:.8rem">
-   <p style="font-weight:700;color:var(--muted);margin-bottom:.6rem">Controls: <b>Space / ↑</b> = Jump · <b>↓ / Hold</b> = Duck</p>
+   <p style="font-weight:700;color:var(--muted);margin-bottom:.6rem">Controls: <b>← / →</b> = Shift Lane · <b>Space / ↑</b> = Jump · <b>↓</b> = Duck</p>
    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
-     <span class="chip">🪵 Low: Jump</span>
-     <span class="chip" style="background:var(--sky);color:#fff">💧 Mid-Air: High Jump</span>
-     <span class="chip" style="background:var(--fire);color:#fff">⚠️ High Barrier: Duck</span>
+     <span class="chip">🎯 Target: ${esc(theme.dest)}</span>
+     <span class="chip" style="background:var(--lime)">🏎 Speed Boost on Tokens</span>
+     <span class="chip" style="background:var(--sun)">⏱ Fast Time = Gold Reward</span>
    </div>
  </div>
  <div style="display:flex;justify-content:center;gap:12px;margin-top:1rem;flex-wrap:wrap">
@@ -1249,21 +1230,21 @@ function vGame(){
  </div>`;
 }
 
-function vGameResult(score,coupon){
+function vGameResult(timeSec,coupon,actName){
  const tierEmoji={bronze:'🥉',silver:'🥈',gold:'🥇'}[coupon.tier];
  return `${crumbs(4)}
  <section style="text-align:center;max-width:640px;margin:1.2rem auto">
    <div style="font-size:3.5rem;margin-bottom:.4rem">${tierEmoji}</div>
-   <h2 style="font-size:2.4rem;margin-bottom:.4rem">You scored ${score} points!</h2>
-   <p style="font-size:1.15rem;color:var(--muted);margin-bottom:1.4rem">You unlocked a <b>${coupon.discount}% off</b> starter kit coupon!</p>
+   <h2 style="font-size:2.4rem;margin-bottom:.4rem">Arrived in ${timeSec.toFixed(1)}s!</h2>
+   <p style="font-size:1.15rem;color:var(--muted);margin-bottom:1.4rem">You reached the <b>${esc(actName)}</b> destination and earned a <b>${coupon.discount}% off</b> starter kit voucher!</p>
    <div style="background:#fff;border:var(--bd);border-radius:20px;padding:1.4rem;box-shadow:var(--sh);margin-bottom:1.4rem">
-     <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;font-weight:800;letter-spacing:.05em">Your Generated Coupon Code</p>
+     <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;font-weight:800;letter-spacing:.05em">Your Generated Decathlon Coupon</p>
      <p style="font-family:monospace;font-size:1.5rem;font-weight:800;letter-spacing:.06em;margin-bottom:1rem;color:var(--blue);word-break:break-all">${coupon.code}</p>
      <button class="btn btn-lime btn-lg" id="copyCoupon" data-code="${coupon.code}" style="width:100%">📋 Copy to Clipboard</button>
    </div>
    <div class="actions" style="justify-content:center">
      <button class="btn btn-blue btn-lg" data-action="kitdone">Complete My Kit →</button>
-     <button class="btn btn-ghost" data-action="startgame">🔁 Try Again</button>
+     <button class="btn btn-ghost" data-action="startgame">🔁 Race Again</button>
    </div>
  </section>`;
 }
@@ -1278,388 +1259,426 @@ function initGame(){
  ctx.scale(dpr,dpr);
 
  const act=S.chosen;
- const obs=OBSTACLES[act.id]||OBSTACLES.cubbon;
- const groundY=340;
+ const theme=THEMES[act.id]||THEMES.cubbon;
 
- const player={
-   x:80,
-   y:groundY-60,
-   w:42,
-   h:60,
-   vy:0,
-   jumping:false,
-   ducking:false
- };
+ const COURSE_LENGTH=3600;
+ const horizonY=140;
+ const laneX=[-130,0,130];
 
- const gravity=0.88;
- const jumpPower=-16.2;
- const obstacles=[];
- let gameRunning=true,score=0,cleared=0,level=1,gameTime=0,spawnTimer=0,spawnInterval=100;
- let dist=0;
+ let playerLane=1;
+ let targetLane=1;
+ let laneLerp=0;
+ let playerZ=0;
+ let playerY=0;
+ let vy=0;
+ let isJumping=false;
+ let isDucking=false;
+ let duckTimer=0;
 
- function jump(){
-   if(!gameRunning)return;
-   if(!player.jumping&&!player.ducking){
-     player.jumping=true;
-     player.vy=jumpPower;
-   }
+ let speed=22;
+ let baseSpeed=22;
+ let boostTimer=0;
+ let stumbleTimer=0;
+ let gameRunning=true;
+ let startTime=Date.now();
+ let elapsedSec=0;
+
+ // Generate 3D Obstacles & Tokens along the track
+ const objects=[];
+ for(let z=400;z<COURSE_LENGTH-400;z+=180+Math.random()*80){
+   const lane=Math.floor(Math.random()*3);
+   const type=Math.random()<0.35?'token':(Math.random()<0.5?'hurdle':'barrier');
+   objects.push({z,lane,type,hit:false});
  }
 
- function setDuck(on){
-   if(!gameRunning)return;
-   if(player.jumping)return;
-   player.ducking=on;
+ function jump(){
+   if(!isJumping&&!isDucking){
+     isJumping=true;
+     vy=14;
+   }
+ }
+ function duck(){
+   if(!isJumping){
+     isDucking=true;
+     duckTimer=35;
+   }
  }
 
  const onKey=e=>{
-   if(e.code==='Space'||e.code==='ArrowUp'||e.key===' '){
+   if(e.code==='ArrowLeft'||e.key==='a'){
+     if(targetLane>0)targetLane--;
+   }
+   if(e.code==='ArrowRight'||e.key==='d'){
+     if(targetLane<2)targetLane++;
+   }
+   if(e.code==='Space'||e.code==='ArrowUp'||e.key==='w'){
      e.preventDefault();
      jump();
    }
-   if(e.code==='ArrowDown'){
+   if(e.code==='ArrowDown'||e.key==='s'){
      e.preventDefault();
-     setDuck(true);
-   }
- };
- const onKeyUp=e=>{
-   if(e.code==='ArrowDown'){
-     e.preventDefault();
-     setDuck(false);
+     duck();
    }
  };
 
  const onTouch=e=>{
-   e.preventDefault();
    const rect=canvas.getBoundingClientRect();
    const touch=e.touches&&e.touches[0];
-   const y=touch?(touch.clientY-rect.top):(e.clientY-rect.top);
-   if(y>rect.height*0.56){
-     setDuck(true);
-   }else{
+   const tx=(touch?touch.clientX:e.clientX)-rect.left;
+   const ty=(touch?touch.clientY:e.clientY)-rect.top;
+   const relX=tx/rect.width;
+   const relY=ty/rect.height;
+
+   if(relY<0.35){
      jump();
+   }else if(relY>0.7){
+     duck();
+   }else{
+     if(relX<0.4&&targetLane>0)targetLane--;
+     else if(relX>0.6&&targetLane<2)targetLane++;
    }
- };
- const onTouchEnd=e=>{
-   e.preventDefault();
-   setDuck(false);
  };
 
  window.addEventListener('keydown',onKey);
- window.addEventListener('keyup',onKeyUp);
  canvas.addEventListener('touchstart',onTouch,{passive:false});
- canvas.addEventListener('touchend',onTouchEnd,{passive:false});
  canvas.addEventListener('mousedown',onTouch);
- window.addEventListener('mouseup',()=>setDuck(false));
 
  function cleanup(){
    window.removeEventListener('keydown',onKey);
-   window.removeEventListener('keyup',onKeyUp);
    canvas.removeEventListener('touchstart',onTouch);
-   canvas.removeEventListener('touchend',onTouchEnd);
    canvas.removeEventListener('mousedown',onTouch);
  }
 
- function makeObstacle(type,xOff=0){
-   let o={
-     x:W+20+xOff,
-     type,
-     emoji:obs.emoji,
-     passed:false,
-     pulse:Math.random()*Math.PI*2
-   };
-   if(type==='low'){
-     o.y=groundY-38;
-     o.w=36;
-     o.h=38;
-   }else if(type==='float'){
-     o.y=groundY-115;
-     o.w=38;
-     o.h=38;
-   }else if(type==='high'){
-     o.y=groundY-128;
-     o.w=54;
-     o.h=40;
-   }
-   return o;
- }
-
- function spawn(){
-   const roll=Math.random();
-   if(level>=3&&roll<0.32){
-     obstacles.push(makeObstacle('low',0));
-     obstacles.push(makeObstacle('float',155));
-   }else if(level>=2&&roll<0.62){
-     obstacles.push(makeObstacle('high',0));
-   }else if(roll<0.82){
-     obstacles.push(makeObstacle('low',0));
-   }else{
-     obstacles.push(makeObstacle('float',0));
-   }
+ function project(x,y,z){
+   const relZ=z-playerZ;
+   if(relZ<=0)return null;
+   const fov=240;
+   const scale=fov/relZ;
+   const sx=W/2+x*scale;
+   const sy=horizonY+(H-horizonY)*0.45+y*scale;
+   return {x:sx,y:sy,scale,relZ};
  }
 
  function update(){
    if(!gameRunning)return;
-   gameTime++;
-   spawnTimer++;
 
-   level=1+Math.floor(cleared/4);
-   const speed=7.5+Math.min(6.2,cleared*0.25+gameTime/600);
-   spawnInterval=Math.max(50,100-level*7);
+   elapsedSec=(Date.now()-startTime)/1000;
 
-   if(spawnTimer>spawnInterval){
-     spawn();
-     spawnTimer=0;
-   }
-
-   if(player.ducking&&!player.jumping){
-     player.y=groundY-34;
-     player.h=34;
+   // Speed calculations
+   if(boostTimer>0){
+     boostTimer--;
+     speed=34;
+   }else if(stumbleTimer>0){
+     stumbleTimer--;
+     speed=13;
    }else{
-     player.h=60;
-     if(!player.jumping)player.y=groundY-player.h;
+     speed=baseSpeed;
    }
 
-   player.vy+=gravity;
-   player.y+=player.vy;
+   playerZ+=speed;
 
-   if(player.y>=groundY-player.h){
-     player.y=groundY-player.h;
-     player.vy=0;
-     player.jumping=false;
-   }
+   // Smooth lane movement
+   laneLerp+=(targetLane-laneLerp)*0.22;
+   playerLane=targetLane;
 
-   dist+=speed;
-
-   const pBox=player.ducking&&!player.jumping
-     ?{x:player.x+4,y:groundY-34,w:player.w-6,h:34}
-     :{x:player.x+6,y:player.y+4,w:player.w-12,h:player.h-6};
-
-   for(let i=obstacles.length-1;i>=0;i--){
-     const o=obstacles[i];
-     o.x-=speed;
-
-     if(!o.passed&&o.x+o.w<player.x){
-       o.passed=true;
-       score+=50;
-       cleared++;
+   // Jump physics
+   if(isJumping){
+     playerY+=vy;
+     vy-=0.9;
+     if(playerY<=0){
+       playerY=0;
+       isJumping=false;
      }
+   }
 
-     const pad=6;
-     const ox=o.x+pad, oy=o.y+pad, ow=o.w-pad*2, oh=o.h-pad*2;
+   // Duck timer
+   if(isDucking){
+     duckTimer--;
+     if(duckTimer<=0)isDucking=false;
+   }
 
-     if(pBox.x<ox+ow && pBox.x+pBox.w>ox && pBox.y<oy+oh && pBox.y+pBox.h>oy){
-       gameRunning=false;
+   // Collisions
+   for(const obj of objects){
+     if(obj.hit)continue;
+     const dz=obj.z-playerZ;
+     if(dz>-20&&dz<40){
+       if(Math.abs(laneLerp-obj.lane)<0.55){
+         obj.hit=true;
+         if(obj.type==='token'){
+           boostTimer=60;
+           toast('⚡ SQ Token Boost!');
+         }else if(obj.type==='hurdle'){
+           if(playerY<18){
+             stumbleTimer=50;
+             toast('💥 Hurdle Stumble!');
+           }
+         }else if(obj.type==='barrier'){
+           if(!isDucking){
+             stumbleTimer=50;
+             toast('💥 Duck to clear barriers!');
+           }
+         }
+       }
      }
+   }
 
-     if(o.x<-70)obstacles.splice(i,1);
+   // Finish check
+   if(playerZ>=COURSE_LENGTH){
+     gameRunning=false;
    }
  }
 
- function drawPlayer(){
-   const duck=player.ducking&&!player.jumping;
-   const x=player.x, y=duck?groundY-34:player.y;
-   const w=player.w, h=duck?34:player.h;
-
-   // Ground shadow
-   ctx.fillStyle='rgba(11,31,58,0.25)';
-   ctx.beginPath();
-   ctx.arc(x+w/2,groundY+4,duck?20:15,0,Math.PI*2);
-   ctx.fill();
-
-   ctx.save();
-   ctx.translate(x,y);
-
-   if(duck){
-     // Ducking character
-     ctx.fillStyle='#0B1F3A';
-     ctx.fillRect(2,10,w-4,20);
-     ctx.fillStyle='#0069B4';
-     ctx.fillRect(4,12,w-8,14);
-
-     // Head
-     ctx.fillStyle='#FFD23F';
-     ctx.beginPath();ctx.arc(w-4,9,11,0,Math.PI*2);ctx.fill();
-     ctx.lineWidth=2.5;ctx.strokeStyle='#0B1F3A';ctx.stroke();
-
-     // Decathlon logo stripe
-     ctx.fillStyle='#C8F54A';
-     ctx.fillRect(10,18,10,4);
-   }else{
-     // High-Visibility Solid Vector Athlete
-     const legSwing=Math.sin(gameTime*0.35)*14;
-     ctx.lineWidth=6;
-     ctx.lineCap='round';
-     ctx.strokeStyle='#0B1F3A';
-
-     // Back Leg
-     ctx.beginPath();
-     ctx.moveTo(18,44);
-     ctx.lineTo(8-legSwing*0.6,58);
-     ctx.stroke();
-
-     // Front Leg
-     ctx.beginPath();
-     ctx.moveTo(26,44);
-     ctx.lineTo(34+legSwing*0.6,58);
-     ctx.stroke();
-
-     // Torso
-     ctx.fillStyle='#0B1F3A';
-     ctx.fillRect(10,16,24,30);
-     ctx.fillStyle='#0069B4';
-     ctx.fillRect(13,19,18,24);
-
-     // Lime Sprint Badge
-     ctx.fillStyle='#C8F54A';
-     ctx.fillRect(16,26,12,6);
-
-     // Head
-     ctx.fillStyle='#FFD23F';
-     ctx.beginPath();
-     ctx.arc(22,10,12,0,Math.PI*2);
-     ctx.fill();
-     ctx.lineWidth=3;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.stroke();
-
-     // Eye
-     ctx.fillStyle='#0B1F3A';
-     ctx.beginPath();ctx.arc(27,9,2.2,0,Math.PI*2);ctx.fill();
-
-     // Arms
-     ctx.lineWidth=5;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.beginPath();
-     ctx.moveTo(22,23);
-     ctx.lineTo(38,18+legSwing*0.5);
-     ctx.stroke();
-
-     ctx.beginPath();
-     ctx.moveTo(14,24);
-     ctx.lineTo(2,32-legSwing*0.5);
-     ctx.stroke();
-   }
-   ctx.restore();
- }
-
- function drawObstacle(o){
-   const bob=Math.sin(gameTime*0.1+o.pulse)*3;
-
-   // Ground shadow
-   ctx.fillStyle='rgba(11,31,58,0.2)';
-   ctx.beginPath();
-   ctx.arc(o.x+o.w/2,groundY+4,14,0,Math.PI*2);
-   ctx.fill();
-
-   if(o.type==='high'){
-     ctx.fillStyle='#FF6B2C';
-     ctx.fillRect(o.x,o.y,o.w,o.h);
-     ctx.lineWidth=3;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.strokeRect(o.x,o.y,o.w,o.h);
-
-     ctx.font='22px sans-serif';
-     ctx.textAlign='center';
-     ctx.textBaseline='middle';
-     ctx.fillText('⚠️',o.x+o.w/2,o.y+o.h/2);
-
-     ctx.fillStyle='#0B1F3A';
-     ctx.font='800 10px "DM Sans",sans-serif';
-     ctx.fillText('DUCK!',o.x+o.w/2,o.y-8);
-     return;
-   }
-
-   ctx.fillStyle=o.type==='float'?'#00A3E0':'#FF6B2C';
-   ctx.beginPath();
-   ctx.arc(o.x+o.w/2,o.y+o.h/2+bob,o.w/2,0,Math.PI*2);
-   ctx.fill();
-   ctx.lineWidth=2.5;
-   ctx.strokeStyle='#0B1F3A';
-   ctx.stroke();
-
-   ctx.font='24px sans-serif';
-   ctx.textAlign='center';
-   ctx.textBaseline='middle';
-   ctx.fillText(o.emoji,o.x+o.w/2,o.y+o.h/2+bob+1);
-
-   if(o.type==='float'){
-     ctx.fillStyle='#0B1F3A';
-     ctx.font='800 10px "DM Sans",sans-serif';
-     ctx.fillText('HIGH JUMP',o.x+o.w/2,o.y-9);
-   }
- }
-
- function drawFrame(){
-   // Clear Sky
-   const sky=ctx.createLinearGradient(0,0,0,groundY);
-   sky.addColorStop(0,'#7BC6F7');sky.addColorStop(1,'#DCF2FF');
-   ctx.fillStyle=sky;ctx.fillRect(0,0,W,groundY);
+ function drawRoad(){
+   // Sky
+   ctx.fillStyle=theme.sky;
+   ctx.fillRect(0,0,W,horizonY);
 
    // Sun
-   ctx.fillStyle='#FFD23F';ctx.beginPath();ctx.arc(W-110,85,32,0,Math.PI*2);ctx.fill();
-   ctx.lineWidth=3;ctx.strokeStyle='#0B1F3A';ctx.stroke();
+   ctx.fillStyle='#FFD23F';
+   ctx.beginPath();
+   ctx.arc(W-140,70,30,0,Math.PI*2);
+   ctx.fill();
 
-   // Horizon hills
-   ctx.fillStyle='#A6E3B3';
-   ctx.beginPath();ctx.moveTo(0,groundY);
-   for(let x=0;x<=W;x+=10)ctx.lineTo(x,groundY-45-Math.sin((x+dist*0.2)/90)*24);
-   ctx.lineTo(W,groundY);ctx.closePath();ctx.fill();
+   // Horizon ground
+   ctx.fillStyle=theme.ground;
+   ctx.fillRect(0,horizonY,W,H-horizonY);
 
-   // Ground
-   ctx.fillStyle='#2FB36B';ctx.fillRect(0,groundY,W,H-groundY);
-   ctx.fillStyle='#C8F54A';ctx.fillRect(0,groundY,W,10);
-   ctx.fillStyle='#0B1F3A';ctx.fillRect(0,groundY,W,3);
+   // Perspective 3-Lane Track
+   const p0=project(-220,120,playerZ+700);
+   const p1=project(220,120,playerZ+700);
+   const pNearL=project(-240,120,playerZ+15);
+   const pNearR=project(240,120,playerZ+15);
 
-   // Track dash lines
-   ctx.fillStyle='rgba(255,255,255,0.4)';
-   const stripe=dist%60;
-   for(let x=-stripe;x<W;x+=60){
-     ctx.fillRect(x,groundY+42,32,6);
+   if(p0&&p1&&pNearL&&pNearR){
+     ctx.fillStyle=theme.track;
+     ctx.beginPath();
+     ctx.moveTo(pNearL.x,pNearL.y);
+     ctx.lineTo(p0.x,p0.y);
+     ctx.lineTo(p1.x,p1.y);
+     ctx.lineTo(pNearR.x,pNearR.y);
+     ctx.closePath();
+     ctx.fill();
+
+     ctx.lineWidth=3;
+     ctx.strokeStyle='#0B1F3A';
+     ctx.stroke();
+
+     // Lane separator dashes
+     for(let l=-1;l<=1;l+=2){
+       const laneOff=l*75;
+       for(let z=Math.floor(playerZ/120)*120;z<playerZ+700;z+=120){
+         const pl1=project(laneOff,120,z);
+         const pl2=project(laneOff,120,z+60);
+         if(pl1&&pl2){
+           ctx.strokeStyle='rgba(255,255,255,0.7)';
+           ctx.lineWidth=4*pl1.scale;
+           ctx.beginPath();
+           ctx.moveTo(pl1.x,pl1.y);
+           ctx.lineTo(pl2.x,pl2.y);
+           ctx.stroke();
+         }
+       }
+     }
    }
+ }
 
-   // Obstacles & Player
-   obstacles.forEach(drawObstacle);
-   drawPlayer();
+ function draw3DObject(obj){
+   const p=project(laneX[obj.lane],120,obj.z);
+   if(!p)return;
 
-   // Score & Level HUD
+   const s=p.scale;
+   const x=p.x;
+   const y=p.y;
+
+   if(obj.type==='token'){
+     // Rotating SQ Token
+     ctx.fillStyle='#FFD23F';
+     ctx.beginPath();
+     ctx.arc(x,y-30*s,18*s,0,Math.PI*2);
+     ctx.fill();
+     ctx.lineWidth=2;
+     ctx.strokeStyle='#0B1F3A';
+     ctx.stroke();
+
+     ctx.fillStyle='#0B1F3A';
+     ctx.font=`bold ${Math.max(10,14*s)}px sans-serif`;
+     ctx.textAlign='center';
+     ctx.fillText('SQ',x,y-25*s);
+   }else if(obj.type==='hurdle'){
+     // Low Ground Hurdle
+     ctx.fillStyle='#FF6B2C';
+     ctx.fillRect(x-30*s,y-24*s,60*s,24*s);
+     ctx.strokeStyle='#0B1F3A';
+     ctx.lineWidth=2;
+     ctx.strokeRect(x-30*s,y-24*s,60*s,24*s);
+
+     ctx.fillStyle='#fff';
+     ctx.fillRect(x-24*s,y-18*s,48*s,6*s);
+   }else if(obj.type==='barrier'){
+     // Overhead Duck Barrier
+     ctx.fillStyle='#0069B4';
+     ctx.fillRect(x-40*s,y-75*s,80*s,26*s);
+     ctx.strokeStyle='#0B1F3A';
+     ctx.lineWidth=2;
+     ctx.strokeRect(x-40*s,y-75*s,80*s,26*s);
+
+     ctx.fillStyle='#C8F54A';
+     ctx.font=`bold ${Math.max(8,12*s)}px sans-serif`;
+     ctx.textAlign='center';
+     ctx.fillText('▼ DUCK ▼',x,y-58*s);
+   }
+ }
+
+ function drawDestinationArch(){
+   const p=project(0,120,COURSE_LENGTH);
+   if(!p)return;
+   const s=p.scale;
+   const x=p.x;
+   const y=p.y;
+
    ctx.fillStyle='#0B1F3A';
-   ctx.font='800 20px "DM Sans", sans-serif';
-   ctx.textAlign='left';
-   ctx.fillText(`Score: ${score}`,24,36);
-   ctx.fillText(`Level ${level}`,180,36);
+   ctx.fillRect(x-140*s,y-140*s,280*s,140*s);
+   ctx.fillStyle=theme.sky;
+   ctx.fillRect(x-110*s,y-120*s,220*s,120*s);
 
-   const nextTier=COUPON_TIERS.find(t=>score<t.min);
-   const status=nextTier?`Next: ${nextTier.discount}% off at ${nextTier.min}`:`🥇 Max 20% Unlocked!`;
+   ctx.fillStyle='#C8F54A';
+   ctx.fillRect(x-130*s,y-135*s,260*s,35*s);
+   ctx.fillStyle='#0B1F3A';
+   ctx.font=`bold ${Math.max(10,18*s)}px 'DM Sans',sans-serif`;
+   ctx.textAlign='center';
+   ctx.fillText(theme.dest.toUpperCase(),x,y-112*s);
+ }
+
+ function drawPlayer3D(){
+   // The 3D Low-Poly Character
+   const curX=laneX[0]+(laneLerp)*(laneX[1]-laneX[0]);
+   const p=project(curX,120-playerY,playerZ+36);
+   if(!p)return;
+
+   const s=p.scale;
+   const x=p.x;
+   const y=p.y;
+
+   // Shadow
+   ctx.fillStyle='rgba(11,31,58,0.3)';
+   ctx.beginPath();
+   ctx.ellipse(x,p.y+playerY*s,28*s,8*s,0,0,Math.PI*2);
+   ctx.fill();
+
+   if(isDucking){
+     // Ducking stance
+     ctx.fillStyle='#0B1F3A';
+     ctx.fillRect(x-20*s,y-32*s,40*s,28*s);
+     ctx.fillStyle='#0069B4';
+     ctx.fillRect(x-16*s,y-28*s,32*s,22*s);
+     ctx.fillStyle='#FFD23F';
+     ctx.beginPath();
+     ctx.arc(x,y-38*s,12*s,0,Math.PI*2);
+     ctx.fill();
+   }else{
+     // Running Low-Poly Geometry
+     const leg=Math.sin(playerZ*0.12)*14*s;
+
+     // Legs
+     ctx.lineWidth=6*s;
+     ctx.strokeStyle='#0B1F3A';
+     ctx.beginPath();
+     ctx.moveTo(x-8*s,y-24*s);
+     ctx.lineTo(x-12*s,y+leg);
+     ctx.stroke();
+
+     ctx.beginPath();
+     ctx.moveTo(x+8*s,y-24*s);
+     ctx.lineTo(x+12*s,y-leg);
+     ctx.stroke();
+
+     // Body / Jersey
+     ctx.fillStyle='#0B1F3A';
+     ctx.fillRect(x-16*s,y-58*s,32*s,36*s);
+     ctx.fillStyle='#0069B4';
+     ctx.fillRect(x-12*s,y-54*s,24*s,30*s);
+
+     // Lime Decathlon Stripe
+     ctx.fillStyle='#C8F54A';
+     ctx.fillRect(x-8*s,y-42*s,16*s,6*s);
+
+     // Head
+     ctx.fillStyle='#FFD23F';
+     ctx.beginPath();
+     ctx.arc(x,y-68*s,14*s,0,Math.PI*2);
+     ctx.fill();
+     ctx.lineWidth=2;
+     ctx.strokeStyle='#0B1F3A';
+     ctx.stroke();
+   }
+ }
+
+ function drawHUD(){
+   // Progress bar
+   const pct=Math.min(100,Math.round((playerZ/COURSE_LENGTH)*100));
+   ctx.fillStyle='#fff';
+   ctx.fillRect(24,20,W-48,16);
+   ctx.strokeStyle='#0B1F3A';
+   ctx.lineWidth=2;
+   ctx.strokeRect(24,20,W-48,16);
+   ctx.fillStyle='#C8F54A';
+   ctx.fillRect(26,22,(W-52)*(pct/100),12);
+
+   // Time & Target
+   ctx.fillStyle='#0B1F3A';
+   ctx.font='800 18px "DM Sans", sans-serif';
+   ctx.textAlign='left';
+   ctx.fillText(`⏱ ${elapsedSec.toFixed(1)}s`,24,62);
+
    ctx.textAlign='right';
-   ctx.fillText(status,W-24,36);
+   ctx.fillText(`${theme.dest} (${pct}%)`,W-24,62);
  }
 
  function loop(){
    update();
-   drawFrame();
+   ctx.clearRect(0,0,W,H);
+   drawRoad();
+
+   // Sort and draw objects from furthest to nearest
+   const visible=objects.filter(o=>o.z>playerZ&&o.z<playerZ+750).sort((a,b)=>b.z-a.z);
+   for(const obj of visible){
+     draw3DObject(obj);
+   }
+
+   drawDestinationArch();
+   drawPlayer3D();
+   drawHUD();
+
    if(gameRunning){
      requestAnimationFrame(loop);
-   } else {
+   }else{
      cleanup();
-     ctx.fillStyle='rgba(11,31,58,0.74)';
+     ctx.fillStyle='rgba(11,31,58,0.78)';
      ctx.fillRect(0,0,W,H);
      ctx.fillStyle='#fff';
-     ctx.font='800 38px "Bricolage Grotesque", sans-serif';
+     ctx.font='800 36px "Bricolage Grotesque", sans-serif';
      ctx.textAlign='center';
-     ctx.fillText('Sprint Finished!',W/2,H/2-10);
-     ctx.font='700 20px "DM Sans", sans-serif';
-     ctx.fillStyle='#C8F54A';
-     ctx.fillText(`Final Score: ${score}`,W/2,H/2+28);
+     ctx.fillText('Destination Reached! 🎉',W/2,H/2-10);
 
-     const coupon=genCoupon(act.id,score);
-     S.gameScore=score;S.gameCoupon=coupon;
+     const tier=elapsedSec<18?'gold':(elapsedSec<26?'silver':'bronze');
+     const discount=tier==='gold'?20:(tier==='silver'?15:10);
+     const coupon={
+       code:`SIDEQUEST-${act.id.toUpperCase()}-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
+       discount,
+       tier
+     };
+
+     S.gameScore=Math.round(1000/elapsedSec);
+     S.gameCoupon=coupon;
+
      setTimeout(()=>{
        S.screen='gameresult';
-       $app.innerHTML=vGameResult(score,coupon);
+       $app.innerHTML=vGameResult(elapsedSec,coupon,act.name);
        attachGameResultHandlers();
      },1200);
    }
  }
+
  requestAnimationFrame(loop);
 }
 
