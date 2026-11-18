@@ -2,17 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B1F3A">
 <title>SideQuest | From “someday” to THIS weekend!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!-- Three.js r128 (pinned) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <style>
 /* ==========================================================
    HEADLINE FONT: "All The Way To The Sun"
-   Looks in repo ROOT first, then assets/fonts/.
    ========================================================== */
 @font-face{
   font-family:'All The Way To The Sun';
@@ -49,6 +50,7 @@ body{
   overflow-x:hidden;
   font-synthesis:none;
 }
+body.kd-open{overflow:hidden}
 h1,h2,h3,.display{font-family:var(--display);font-weight:800;letter-spacing:.01em;line-height:1.1}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
 img{max-width:100%;display:block}
@@ -311,6 +313,18 @@ a.pname:hover{text-decoration:underline;text-decoration-thickness:2px}
 .confetti span{position:fixed;top:-24px;width:10px;height:16px;z-index:60;animation:fall 3.4s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 
+/* ---------- Coupon page ---------- */
+.coupon-page{text-align:center;max-width:640px;margin:1.2rem auto}
+.coupon-page .big-emoji{font-size:3.5rem;margin-bottom:.4rem}
+.coupon-page h2{font-size:clamp(2.2rem,6vw,3.2rem);margin-bottom:.4rem}
+.coupon-page .sub{font-size:1.12rem;color:var(--muted);margin-bottom:1.4rem}
+.coupon-card{background:#fff;border:var(--bd);border-radius:20px;padding:1.4rem;box-shadow:var(--sh);margin-bottom:1.4rem}
+.coupon-card .cl{font-size:.82rem;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;font-weight:800;letter-spacing:.05em}
+.coupon-card .code{font-family:monospace;font-size:1.45rem;font-weight:800;letter-spacing:.06em;margin-bottom:1rem;color:var(--blue);word-break:break-all}
+.coupon-card .pct-big{font-family:var(--display);font-size:3rem;line-height:1;margin-bottom:.6rem}
+.coupon-card .demo{font-size:.82rem;color:var(--muted);margin-top:.8rem}
+.stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:1.2rem}
+
 /* ---------- Footer ---------- */
 footer{background:var(--ink);color:#DCE6F5;padding:1.8rem clamp(1rem,4vw,2.5rem);font-size:.85rem;margin-top:2rem;border-top:var(--bd)}
 .foot-in{max-width:1180px;margin:0 auto;display:flex;gap:1.4rem;align-items:flex-start;flex-wrap:wrap}
@@ -320,15 +334,104 @@ footer{background:var(--ink);color:#DCE6F5;padding:1.8rem clamp(1rem,4vw,2.5rem)
 .foot-text p+p{margin-top:.5rem}
 footer b{color:var(--lime)}
 .made-with{max-width:1180px;margin:1.6rem auto 0;padding-top:1.1rem;border-top:2px dashed rgba(220,230,245,.3);text-align:center;font-weight:700;font-size:1rem;color:#fff;line-height:1.6}
-.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);background:var(--ink);color:#fff;border:2px solid var(--lime);padding:.7rem 1.2rem;border-radius:999px;font-weight:700;z-index:80;transition:transform .3s;max-width:92vw}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);background:var(--ink);color:#fff;border:2px solid var(--lime);padding:.7rem 1.2rem;border-radius:999px;font-weight:700;z-index:400;transition:transform .3s;max-width:92vw;text-align:center}
 .toast.show{transform:translate(-50%,0)}
+/* while the game is open, show toasts at the top so they never cover the touch controls */
+body.kd-open .toast{bottom:auto;top:76px;transform:translate(-50%,-160px)}
+body.kd-open .toast.show{transform:translate(-50%,0)}
+
+/* ==========================================================
+   KIT DASH: FULL-SCREEN GAME OVERLAY
+   ========================================================== */
+#kd-overlay{
+  position:fixed;inset:0;z-index:300;background:#AEE0FF;
+  overscroll-behavior:none;touch-action:none;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+  font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);outline:none;
+}
+#kd-stage{position:absolute;inset:0}
+#kd-stage canvas{display:block;width:100%;height:100%}
+.kd-hud{
+  position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+  padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));
+}
+.kd-left,.kd-right{display:flex;flex-direction:column;gap:8px}
+.kd-left{align-items:flex-start}
+.kd-right{align-items:flex-end}
+.kd-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.kd-map{
+  display:block;width:112px;height:125px;pointer-events:none;background:#FFF3D6;
+  border:3px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink)
+}
+@media(max-width:820px){.kd-map{width:84px;height:94px}}
+.kd-chip,.kd-btn{
+  pointer-events:auto;background:rgba(255,255,255,.95);border:3px solid var(--ink);border-radius:999px;
+  padding:.3rem .95rem;font-weight:800;font-size:.98rem;box-shadow:3px 3px 0 var(--ink);white-space:nowrap
+}
+.kd-btn{cursor:pointer}
+.kd-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.kd-chip.warn{background:var(--fire);color:#fff}
+.kd-list{
+  background:rgba(255,255,255,.96);border:3px solid var(--ink);border-radius:18px;padding:.6rem .9rem .7rem;
+  box-shadow:4px 4px 0 var(--ink);max-width:min(300px,46vw);pointer-events:none
+}
+.kd-list h4{font-family:var(--display);font-size:1.05rem;color:var(--blue);margin-bottom:.3rem}
+.kd-list ul{list-style:none;padding:0;display:grid;gap:.25rem}
+.kd-list li{display:flex;gap:.45rem;align-items:flex-start;font-size:.88rem;font-weight:800;line-height:1.2}
+.kd-list li.got{color:var(--muted);text-decoration:line-through;opacity:.7}
+.kd-tools{display:flex;gap:8px}
+.kd-prompt{
+  position:absolute;left:50%;bottom:44px;transform:translateX(-50%);z-index:3;
+  background:var(--sun);border:3px solid var(--ink);border-radius:18px;padding:.5rem 1.1rem;
+  font-family:var(--display);font-weight:800;font-size:1.15rem;box-shadow:4px 4px 0 var(--ink);
+  max-width:92vw;text-align:center;cursor:pointer;animation:kdpulse .7s infinite alternate ease-in-out
+}
+@keyframes kdpulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.05)}}
+.kd-banner{
+  position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) scale(.6);opacity:0;z-index:5;pointer-events:none;
+  background:var(--lime);border:4px solid var(--ink);border-radius:24px;padding:.9rem 2rem;box-shadow:8px 8px 0 var(--ink);
+  font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,6vw,3.2rem);text-align:center;transition:all .35s cubic-bezier(.2,1.5,.4,1)
+}
+.kd-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.kd-touch{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;display:none;pointer-events:none;
+  justify-content:space-between;align-items:flex-end;
+  padding:16px max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+}
+@media(hover:none),(max-width:820px){.kd-touch{display:flex}.kd-prompt{bottom:190px}}
+.kd-pad{display:grid;grid-template-columns:repeat(3,62px);grid-template-rows:repeat(3,62px);gap:6px;pointer-events:auto;touch-action:none}
+.kd-pad button{
+  background:rgba(255,255,255,.92);border:3px solid var(--ink);border-radius:16px;font-size:1.4rem;font-weight:800;
+  display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink);touch-action:none
+}
+.kd-pad button:active{background:var(--lime)}
+.kd-collect{
+  pointer-events:auto;touch-action:none;width:112px;height:112px;border-radius:50%;background:var(--sun);border:4px solid var(--ink);
+  font-family:var(--display);font-weight:800;font-size:1.2rem;box-shadow:5px 5px 0 var(--ink)
+}
+.kd-collect:active{background:var(--lime);transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.kd-intro{
+  position:absolute;inset:0;z-index:6;display:grid;place-items:center;padding:16px;
+  background:rgba(11,31,58,.5);overflow:auto
+}
+.kd-card{
+  background:#fff;border:4px solid var(--ink);border-radius:26px;box-shadow:8px 8px 0 var(--ink);
+  padding:clamp(1.1rem,3vw,1.8rem);max-width:520px;width:100%;text-align:center;max-height:100%;overflow:auto
+}
+.kd-eyebrow{font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;color:var(--blue)}
+.kd-card h2{font-size:clamp(2.2rem,7vw,3.2rem);margin:.2rem 0 .5rem}
+.kd-card p{color:var(--muted);font-size:.98rem;margin-bottom:.7rem}
+.kd-need{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:.4rem 0 .9rem}
+.kd-need li{background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:.2rem .8rem;font-weight:800;font-size:.88rem}
+.kd-card .btn{margin-top:.4rem}
 
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .confetti{display:none}
 }
 @media print{
-  .crumbs,.actions,.confetti,.toast,.marquee,#game-container{display:none!important}
+  .crumbs,.actions,.confetti,.toast,.marquee,#kd-overlay{display:none!important}
   .nav{position:static}
   body{background:#fff}.plan-ticket{box-shadow:none}
 }
@@ -357,10 +460,10 @@ footer b{color:var(--lime)}
     <div class="foot-text">
       <p class="foot-h">⚠ Academic Prototype Disclaimer</p>
       <p><b>Student academic prototype only.</b> SideQuest is a classroom concept created for a digital brand engagement marketing assignment. It is not an official Decathlon website or app, and is not affiliated with, endorsed by, or sponsored by Decathlon. <b>No real orders, payments, or bookings can be made here</b>, and no customer data is collected. Nothing you enter is stored or transmitted.</p>
-      <p>Product names and prices are shown for illustration, based on listings seen on decathlon.in on 10 Nov 2026, and may have changed. Items marked “~” are approximate. Product links open Decathlon’s store search in a new tab. The Decathlon name, brands, and logos are used solely for non-commercial academic demonstration. Photos are royalty-free stock imagery.</p>
+      <p>Product names and prices are shown for illustration, based on listings seen on decathlon.in on 10 Nov 2026, and may have changed. Items marked “~” are approximate. Product links open Decathlon’s store search in a new tab. <b>Coupon codes from the mini-game are demo-only and cannot be redeemed.</b> The Decathlon name, brands, and logos are used solely for non-commercial academic demonstration. Photos are royalty-free stock imagery.</p>
     </div>
   </div>
-  <p class="made-with">Made with ❤️ by Aditya Kumar (2026305), Ankit A (2026064), Archit Gupta (2026069), Kanav Nandra (2026080), Riyanshi Natani (2026106), Suhani Ramchandani (2026116), Tanya Singh (2025113) 🏃‍♂️🏸⚽🧘🛹🏏🎯🎣🎲</p>
+  <p class="made-with">Made with ❤️ by Aditya Kumar (2026305), Ankit A (2026064), Archit Gupta (2026069), Kanav Nandra (2026089), Riyanshi Natani (2026106), Suhani Ramchandani (2026116), Tanya Singh (2025113) 🏃‍♂️🏸⚽🧘🛹🏏🎯🎣🎲</p>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <noscript><p style="padding:2rem">SideQuest needs JavaScript to run. Please enable it and reload.</p></noscript>
@@ -758,7 +861,7 @@ const ITEMS = {
  yogapants:{n:'Domyos High-Waisted Second-Skin Long Yoga Leggings - Black',s:'Domyos yoga leggings',brand:'Domyos',e:'👖',p:699,mrp:2249,v:1,q:'Domyos high-waisted yoga leggings',
    w:'Opaque second-skin stretch fabric with wide waistband that stays put.',up:'Seamless dynamic studio leggings for hot yoga flows.'},
 
- /* Additional gear items */
+ /* Action sports gear */
  skateboard:{n:'Oxelo Skateboard Complete Mid 100 Skull - 31 Inch',s:'Oxelo Complete Skateboard',brand:'Oxelo',e:'🛹',p:1999,mrp:2999,v:1,q:'Oxelo skateboard complete',
    w:'7-ply birch deck with soft 92A polyurethane wheels for smooth cruising control.',up:'Oxelo 500 concave street deck for kickflips and skatepark bowls.'},
  skatehelmet:{n:'Btwin / Oxelo Urban Skating Skateboarding Helmet MF500',s:'Oxelo Skate Helmet',brand:'Oxelo',e:'⛑️',p:1599,mrp:2199,v:1,q:'Oxelo skating helmet MF500',
@@ -772,6 +875,7 @@ const ITEMS = {
  drybag:{n:'Itiwit Waterproof Dry Bag 10L - IPX6 Water Resistant',s:'Itiwit 10L Dry Bag',brand:'Itiwit',e:'🎒',p:699,mrp:1199,v:1,q:'Itiwit dry bag 10L',
    w:'Roll-top watertight closure protects your phone, keys, and dry clothes on water.',up:'30L backpack dry bag with shoulder straps for kayak expeditions.'},
 
+ /* Optional extras */
  cap:{n:'Decathlon Breathable Running Cap',e:'🧢',p:249,w:'Shields your eyes and absorbs forehead sweat on sunny mornings.'},
  socks:{n:'Kalenji Sport Running Socks (Pack of 3)',e:'🧦',p:299,w:'Reinforced heel and toe zones stop friction blisters.'},
  gloves:{n:'Btwin 100 Cycling Mitts / Gloves',e:'🧤',p:349,w:'Gel palm padding softens handlebar vibration on long rides.'},
@@ -856,7 +960,7 @@ const WIN={
    STATE + HELPERS
    ========================================================== */
 const S={screen:'landing',step:0,name:'',a:{window:null,energy:null,vibes:[],blockers:[],company:null,budget:null},
-  ranking:[],picks:[],hist:[new Set(),new Set(),new Set()],chosen:null,kit:{},lean:true,allOpen:false,gameScore:0,gameCoupon:null};
+  ranking:[],picks:[],hist:[new Set(),new Set(),new Set()],chosen:null,kit:{},lean:true,allOpen:false,gameResult:null,gameCoupon:null};
 const $app=document.getElementById('app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const inr=n=>'₹'+Number(n).toLocaleString('en-IN');
@@ -870,41 +974,41 @@ function media(act){
   const img=m?`<img src="${m.local}" data-alt="${m.remote||''}" alt="${esc(act.name)}" loading="lazy" onerror="imgFail(this)">`:'';
   return `<div class="media" style="--g1:${act.grad[0]};--g2:${act.grad[1]}"><span class="media-emoji" aria-hidden="true">${act.emoji}</span>${img}</div>`;
 }
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2800)}
 
 /* ==========================================================
-   RECOMMENDATION ENGINE
+   RECOMMENDATION ENGINE (unchanged)
    ========================================================== */
 function groupKey(){return optOf('company',S.a.company).g}
 function score(act){
   const A=S.a,b=A.blockers,why=[];let s=0;
-  
+
   const [lo,hi]=act.energy,e=A.energy;
-  if(e>=lo&&e<=hi){s+=12;why.push(`Right energy for “${optOf('energy',e).t}”`)} 
+  if(e>=lo&&e<=hi){s+=12;why.push(`Right energy for “${optOf('energy',e).t}”`)}
   else {const gap=e<lo?lo-e:e-hi;s-=gap*4}
-  
+
   const vm=act.scenes.filter(x=>A.vibes.includes(x));
   s+=vm.length*5; if(vm.length) why.push(`Matches your ${vm.map(v=>VIBE_LABEL[v]).join(' + ')} vibe`);
-  
+
   if(A.window==='full'){s+=3;if(act.long){s+=4;why.push('Uses your whole weekend well')}}
   else if(act.times.includes(A.window)){s+=6;why.push(`Works well for ${optOf('window',A.window).t.toLowerCase()}`)}
   if(act.avoid.includes(A.window)) s-=12;
-  
+
   const g=groupKey();
   if(act.company.includes(g)){s+=7;why.push(`Good for ${CO_LABEL[g]}`)} else s-=6;
   if(g==='solo'&&!act.soloOk) s-=8;
-  
+
   const cap=A.budget;
-  if(act.cost[0]>cap) s-=10; 
+  if(act.cost[0]>cap) s-=10;
   else if(act.cost[1]<=cap){s+=4;why.push('Activity cost stays within budget')}
-  
+
   if(b.includes('gear')){s+=(3-act.gear)*3; if(act.gear<=1) why.push('Needs very little gear to begin')}
   if(b.includes('start')&&act.beginner){s+=5;why.push('Beginner-friendly first session')}
   if(b.includes('friends')){ if(act.soloOk){s+=6;why.push('Still works if friends cancel')} else s-=4 }
   if(b.includes('budget')){ s+=act.cost[1]<=500?6:act.cost[1]<=1000?2:-4; if(act.cost[1]<=500) why.push('Low-spend entry') }
   if(b.includes('fit')){ if(act.energy[0]<=2){s+=5;why.push('Gentle start with easy pacing')} else s-=4 }
   if(b.includes('weather')){ if(act.weatherProof){s+=6;why.push('Weather-proof indoor activity')} else s-=3 }
-  
+
   return {act,score:s,why};
 }
 const barrier=a=>(a.soloOk?2:0)+(3-a.gear)+(a.cost[1]<=300?3:a.cost[1]<=700?1:0)+(a.beginner?1:0);
@@ -972,7 +1076,7 @@ function vLanding(){
       <div class="how-card"><span class="n">1</span><h3>Build your weekend</h3><p>Six quick, playful picks: your window, energy, vibe, blockers, crew, and budget.</p></div>
       <div class="how-card"><span class="n">2</span><h3>Meet 3 quests</h3><p>A Best Match, an Easy Backup, and a Wildcard, each with clear reasons why it fits.</p></div>
       <div class="how-card"><span class="n">3</span><h3>Get the 48-hour plan</h3><p>Before, during, and after timeline plus a Plan B for weather or a flaky group chat.</p></div>
-      <div class="how-card"><span class="n">4</span><h3>Pack light & Play</h3><p>Mark what you own, take the 3D race challenge, and unlock starter rewards.</p></div>
+      <div class="how-card"><span class="n">4</span><h3>Pack light & Play</h3><p>Mark what you own, hunt your kit through a 3D store, and unlock a demo coupon.</p></div>
     </div>
   </section>`;
 }
@@ -1142,7 +1246,7 @@ function vKit(){
       <div class="gauge" role="img" aria-label="${pct}% of budget"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
       <p class="note">${all?'No budget cap set.':over?`A little over your ${inr(cap)} budget. Try moving an item to “Later” or “Have it”.`:`Within your ${inr(cap)} budget. Solid.`}</p>
       <div class="actions" style="margin-top:1rem">
-        <button class="btn btn-sun btn-lg" data-action="startgame" style="width:100%">🎮 Race to ${esc(act.name.split(' ')[0])} — 3D Challenge</button>
+        <button class="btn btn-sun btn-lg" data-action="startgame" style="width:100%">🛒 Play Kit Dash — win a demo coupon</button>
         <button class="btn btn-lime" data-action="kitdone" style="width:100%">Skip directly to summary →</button>
       </div>
       <p class="note">Prices as listed on decathlon.in on ${PRICE_DATE}. “~” indicates approximate.</p>
@@ -1151,9 +1255,42 @@ function vKit(){
   <div class="step-nav"><button class="btn btn-ghost" data-action="toplan">← Back to my plan</button></div>`;
 }
 
+/* ---------- Coupon page (shown after the mini-game) ---------- */
+function vGameResult(){
+  const R=S.gameResult;
+  if(!R) return `<section class="coupon-page"><h2 tabindex="-1">No game result yet</h2><div class="actions" style="justify-content:center"><button class="btn btn-lime" data-action="kitdone">Continue to my kit summary →</button></div></section>`;
+  const c=R.coupon,emoji={bronze:'🥉',silver:'🥈',gold:'🥇'}[c.tier];
+  const all=R.found===R.total;
+  const head=all?'Kit complete!':'Time’s up!';
+  const sub=all?`You found all ${R.total} items in ${R.used.toFixed(1)} seconds.`:`You found ${R.found} of ${R.total} items before the clock ran out.`;
+  return `${crumbs(4)}
+  <section class="coupon-page">
+    <div class="big-emoji" aria-hidden="true">${emoji}</div>
+    <h2 tabindex="-1">${head}</h2>
+    <p class="sub">${sub}${R.practice?' (Practice round)':''}</p>
+    <div class="stats">
+      <span class="chip">🧺 ${R.found}/${R.total} items</span>
+      <span class="chip">⏱ ${all?R.used.toFixed(1)+'s':'Time ran out'}</span>
+      <span class="chip" style="background:var(--lime)">${c.tier.toUpperCase()} tier</span>
+    </div>
+    <div class="coupon-card">
+      <p class="cl">Your demo starter-kit coupon</p>
+      <p class="pct-big">${c.discount}% OFF</p>
+      <p class="code">${c.code}</p>
+      <button class="btn btn-lime btn-lg" data-action="copy" data-code="${c.code}" style="width:100%">📋 Copy demo code</button>
+      <p class="demo">Academic prototype only. This code is not redeemable at Decathlon.</p>
+    </div>
+    <div class="actions" style="justify-content:center">
+      <button class="btn btn-blue btn-lg" data-action="kitdone">Continue to my kit summary →</button>
+      <button class="btn btn-ghost" data-action="startgame">🔁 Play again</button>
+    </div>
+  </section>`;
+}
+
 function vDone(){
   const act=S.chosen,T=kitTotals(),w=WIN[S.a.window];
   const needs=act.kit.filter(([id])=>S.kit[id]==='need').map(([id])=>ITEMS[id]).filter(Boolean);
+  const cp=S.gameCoupon,disc=cp?Math.round(T.need*cp.discount/100):0;
   const cols=['#C8F54A','#FFD23F','#FF6B2C','#00A3E0','#FF9DBB'];
   const conf=Array.from({length:36},()=>`<span style="left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*5)]};animation-delay:${(Math.random()*1.2).toFixed(2)}s;transform:rotate(${Math.floor(Math.random()*360)}deg)"></span>`).join('');
   return `<div class="confetti" aria-hidden="true">${conf}</div>${crumbs(4)}
@@ -1161,16 +1298,18 @@ function vDone(){
     <div class="done-photo">${media(act)}<span class="pt-logo">${dlogo('sm')}</span><span class="stamp">🎉 KIT READY</span></div>
     <h2 tabindex="-1">Your kit is ready!</h2>
     <p class="lede">Your ${esc(act.name)} plan and kit checklist are set. In a live journey, pick this up at your nearest Decathlon store or get it delivered.</p>
-    ${S.gameCoupon?`<div style="background:var(--lime);border:var(--bd);border-radius:18px;padding:1.1rem;box-shadow:var(--sh);margin-bottom:1.2rem;text-align:center">
-      <p style="font-weight:800;font-size:1.1rem">⚡ Unlocked Coupon Applied: ${S.gameCoupon.discount}% Off</p>
-      <p style="font-family:monospace;font-size:1.3rem;font-weight:800;letter-spacing:.05em">${S.gameCoupon.code}</p>
+    ${cp?`<div style="background:var(--lime);border:var(--bd);border-radius:18px;padding:1.1rem;box-shadow:var(--sh);margin-bottom:1.2rem;text-align:center">
+      <p style="font-weight:800;font-size:1.1rem">⚡ Demo coupon applied: ${cp.discount}% off</p>
+      <p style="font-family:monospace;font-size:1.3rem;font-weight:800;letter-spacing:.05em">${cp.code}</p>
+      <p style="font-size:.8rem;margin-top:.3rem">Academic prototype only. Not redeemable at Decathlon.</p>
     </div>`:''}
     <div class="receipt">
       <div class="receipt-top"><h3>${act.emoji} ${esc(act.name)} · ${esc(w.day)}</h3></div>
       <div class="sum-row"><span>Items to get</span><b>${T.nN}</b></div>
       ${needs.map(i=>`<div class="sum-row"><span>${i.e} ${esc(i.s||i.n)}</span><span>${i.v===1?'':'~'}${inr(i.p)}</span></div>`).join('')||'<div class="sum-row"><span>Nothing to buy. You already own everything!</span></div>'}
       <div class="sum-row"><span>Already own (saved)</span><b>${inr(T.have)}</b></div>
-      <div class="sum-row big"><span>Kit total</span><span>${inr(T.need)}</span></div>
+      ${cp?`<div class="sum-row"><span>🎟 Demo coupon (${cp.discount}%)</span><b>−${inr(disc)}</b></div>`:''}
+      <div class="sum-row big"><span>Kit total</span><span>${inr(T.need-disc)}</span></div>
     </div>
     <div class="actions" style="justify-content:center">
       <button class="btn btn-sun" data-action="share">📣 Invite a friend</button>
@@ -1183,529 +1322,598 @@ function vDone(){
 }
 
 /* ==========================================================
-   3D DESTINATION RUNNER (Perspective Canvas Engine)
+   KIT DASH — full-screen 3D store game (Three.js r128)
    ========================================================== */
-const THEMES={
- cubbon:       {sky:'#7BC6F7',ground:'#2FB36B',track:'#4CAF50',scenery:'trees',dest:'🌳 Cubbon Bandstand'},
- nandi:        {sky:'#FFB347',ground:'#D4A373',track:'#8D6E63',scenery:'rocks',dest:'🚴 Nandi Sunrise Summit'},
- lake:         {sky:'#64B5F6',ground:'#4DB6AC',track:'#80DEEA',scenery:'water',dest:'🏞️ Lakeside Promenade'},
- badminton:    {sky:'#81D4FA',ground:'#26A69A',track:'#FFCC80',scenery:'arena',dest:'🏸 Matchpoint Arena'},
- football:     {sky:'#80CBC4',ground:'#388E3C',track:'#2E7D32',scenery:'stadium',dest:'⚽ Turf Central'},
- climbing:     {sky:'#B39DDB',ground:'#7E57C2',track:'#5E35B1',scenery:'climb',dest:'🧗 Bouldering Gym'},
- swimming:     {sky:'#4FC3F7',ground:'#0288D1',track:'#03A9F4',scenery:'water',dest:'🏊 Olympic Aquatic Pool'},
- tabletennis:  {sky:'#FFAB91',ground:'#FF7043',track:'#F4511E',scenery:'arena',dest:'🏓 Table Tennis Club'},
- run:          {sky:'#80DEEA',ground:'#43A047',track:'#E53935',scenery:'track',dest:'🏃 3K Finish Arch'},
- yoga:         {sky:'#F48FB1',ground:'#CE93D8',track:'#E1BEE7',scenery:'trees',dest:'🧘 Peaceful Deck'},
- skateboarding:{sky:'#FFCC80',ground:'#78909C',track:'#546E7A',scenery:'city',dest:'🛹 Sarjapur Skatepark'},
- rockclimbing: {sky:'#D7CCC8',ground:'#8D6E63',track:'#6D4C41',scenery:'rocks',dest:'🧗‍♂️ Turahalli Granite Crag'},
- cricket:      {sky:'#A5D6A7',ground:'#4CAF50',track:'#81C784',scenery:'stadium',dest:'🏏 Box Cricket Arena'},
- dance:        {sky:'#CE93D8',ground:'#BA68C8',track:'#AB47BC',scenery:'arena',dest:'💃 Movement Studio'},
- kayaking:     {sky:'#80D8FF',ground:'#00B0FF',track:'#0091EA',scenery:'water',dest:'🛶 Backwater Launch'},
- fishing:      {sky:'#90CAF9',ground:'#5C6BC0',track:'#3F51B5',scenery:'water',dest:'🎣 Lakeside Fishing Dock'},
- boardgames:   {sky:'#FFE082',ground:'#FFB74D',track:'#FFA726',scenery:'city',dest:'🎲 Board Game Café'},
- archery:      {sky:'#FFAB91',ground:'#81C784',track:'#388E3C',scenery:'arena',dest:'🎯 Archery Range'}
+const KD_TIME=90;           // seconds
+const KD_ITEM_COUNT=15;     // products displayed in the store
+let KD=null;                // handle for the active game (null = none)
+
+/* Look of each product in the store: [shape, main colour, accent colour] */
+const PROD={
+ walkshoes:['shoe',0x78909C,0xFFFFFF], courtshoes:['shoe',0xFF6B2C,0xFFFFFF], footshoes:['shoe',0x263238,0xC8F54A],
+ runshoes:['shoe',0x00A3E0,0xC8F54A], climbshoes:['shoe',0x9B5DE5,0xFFD23F], courtshoes_o:['shoe',0x2FB36B,0xFFFFFF],
+ tee:['shirt',0x0069B4,0xC8F54A], jersey:['shirt',0x2FB36B,0xFFFFFF], windcheater:['shirt',0xFF6B2C,0xFFD23F],
+ bottle:['bottle',0xC8F54A,0x0069B4], racket:['racket',0xFF6B2C,0xFFFFFF], paddle:['paddle',0xE53935,0xFFFFFF], cricketbat:['bat',0xD7A86E,0x263238],
+ bag:['bag',0x0069B4,0xC8F54A], drybag:['bag',0xFFD23F,0x263238], chalkbag:['bag',0x9B5DE5,0xFFFFFF],
+ helmet:['helmet',0xFF6B2C,0xFFFFFF], skatehelmet:['helmet',0x00A3E0,0xFFD23F], swimcap:['cap',0x0B1F3A,0x00A3E0], cap:['cap',0xFF9DBB,0xFFFFFF],
+ mat:['mat',0x9B5DE5,0xFFD23F], goggles:['goggles',0x00A3E0,0x263238], towel:['towel',0xFF9DBB,0xFFFFFF],
+ stretchpants:['pants',0x455A64,0xC8F54A], yogapants:['pants',0x9B5DE5,0xFF9DBB], shorts:['pants',0x0069B4,0xFFFFFF], swimsuit:['pants',0x00A3E0,0xFFD23F],
+ skateboard:['board',0xFF6B2C,0x263238], guards:['pads',0x263238,0xFF6B2C], shin:['pads',0x0069B4,0xFFFFFF], archeryguard:['pads',0xFF6B2C,0x263238],
+ shuttles:['shuttle',0xFFFFFF,0xFFB74D], ttballs:['balls',0xFFFFFF,0xFFB74D], socks:['socks',0xFFD23F,0xFF6B2C],
+ gloves:['gloves',0xFF6B2C,0x263238], band:['band',0xFF9DBB,0x9B5DE5], sunglasses:['glasses',0x263238,0x00A3E0]
 };
+const labelOf=id=>{const it=ITEMS[id]||{};return it.s||it.n||id};
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-function vGame(){
- const act=S.chosen;
- const theme=THEMES[act.id]||THEMES.cubbon;
- return `${crumbs(4)}
- <div class="page-head" style="text-align:center">
-   <h2 tabindex="-1">🏃 3D Road to ${esc(act.name.split(' ')[0])}</h2>
-   <p style="margin:0 auto">Steer 3 lanes, <b>Jump</b> hurdles &amp; <b>Duck</b> signs. Reach the finish to unlock up to <b>20% off!</b></p>
- </div>
- <div id="game-container" style="position:relative;width:100%;max-width:800px;aspect-ratio:800/420;border:var(--bd);border-radius:24px;overflow:hidden;margin:1.2rem auto;box-shadow:var(--sh);touch-action:none;user-select:none;-webkit-user-select:none">
-   <canvas id="gameCanvas" width="800" height="420" style="display:block;width:100%;height:100%"></canvas>
- </div>
- <div style="text-align:center;margin-top:.8rem">
-   <p style="font-weight:700;color:var(--muted);margin-bottom:.6rem">Controls: <b>← / →</b> = Shift Lane · <b>Space / ↑</b> = Jump · <b>↓</b> = Duck</p>
-   <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
-     <span class="chip">🎯 Target: ${esc(theme.dest)}</span>
-     <span class="chip" style="background:var(--lime)">🏎 Speed Boost on Tokens</span>
-     <span class="chip" style="background:var(--sun)">⏱ Fast Time = Gold Reward</span>
-   </div>
- </div>
- <div style="display:flex;justify-content:center;gap:12px;margin-top:1rem;flex-wrap:wrap">
-   <button class="btn btn-ghost" data-action="kitdone">Skip game →</button>
- </div>`;
+/* Safe launcher: if ANYTHING fails during setup, the overlay is removed,
+   listeners are released, and the player stays on the kit page. */
+function startKitDash(){
+  if(KD) return;
+  if(typeof THREE==='undefined'){
+    toast('The 3D engine could not load. Check your connection, or skip to the summary.');
+    return;
+  }
+  try{
+    buildKitDash();
+  }catch(err){
+    console.error('Kit Dash failed to start:',err);
+    if(KD&&KD.exit){KD.exit()}
+    else{
+      const o=document.getElementById('kd-overlay');if(o)o.remove();
+      document.body.classList.remove('kd-open');document.documentElement.style.overflow='';
+    }
+    KD=null;
+    toast('Kit Dash could not start ('+((err&&err.message)||'unknown error')+'). You can skip to the summary.');
+  }
 }
 
-function vGameResult(timeSec,coupon,actName){
- const tierEmoji={bronze:'🥉',silver:'🥈',gold:'🥇'}[coupon.tier];
- return `${crumbs(4)}
- <section style="text-align:center;max-width:640px;margin:1.2rem auto">
-   <div style="font-size:3.5rem;margin-bottom:.4rem">${tierEmoji}</div>
-   <h2 style="font-size:2.4rem;margin-bottom:.4rem">Arrived in ${timeSec.toFixed(1)}s!</h2>
-   <p style="font-size:1.15rem;color:var(--muted);margin-bottom:1.4rem">You reached the <b>${esc(actName)}</b> destination and earned a <b>${coupon.discount}% off</b> starter kit voucher!</p>
-   <div style="background:#fff;border:var(--bd);border-radius:20px;padding:1.4rem;box-shadow:var(--sh);margin-bottom:1.4rem">
-     <p style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;font-weight:800;letter-spacing:.05em">Your Generated Decathlon Coupon</p>
-     <p style="font-family:monospace;font-size:1.5rem;font-weight:800;letter-spacing:.06em;margin-bottom:1rem;color:var(--blue);word-break:break-all">${coupon.code}</p>
-     <button class="btn btn-lime btn-lg" id="copyCoupon" data-code="${coupon.code}" style="width:100%">📋 Copy to Clipboard</button>
-   </div>
-   <div class="actions" style="justify-content:center">
-     <button class="btn btn-blue btn-lg" data-action="kitdone">Complete My Kit →</button>
-     <button class="btn btn-ghost" data-action="startgame">🔁 Race Again</button>
-   </div>
- </section>`;
+function buildKitDash(){
+  const act=S.chosen;
+
+  /* ----- 1. Which items must the player find? (same data as the kit screen) ----- */
+  let targetIds=act.kit.filter(([id])=>S.kit[id]==='need').map(([id])=>id);
+  let practice=false;
+  if(!targetIds.length){practice=true;targetIds=act.kit.filter(([,t])=>t==='e').map(([id])=>id)}
+  targetIds=targetIds.slice(0,5);
+  const targetSet=new Set(targetIds);
+  const total=targetIds.length;
+  const collected=new Set();
+
+  /* ----- 2. Full-screen overlay ----- */
+  const ov=document.createElement('div');
+  ov.id='kd-overlay';ov.tabIndex=-1;
+  ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Kit Dash mini-game');
+  ov.innerHTML=`
+    <div id="kd-stage"></div>
+    <div class="kd-hud">
+      <div class="kd-left">
+        <div class="kd-row">
+          <button class="kd-btn" id="kd-exit" type="button">✕ Exit</button>
+          <div class="kd-chip" id="kd-time">⏱ ${KD_TIME}s</div>
+          <div class="kd-chip" id="kd-found">🧺 0/${total}</div>
+        </div>
+        <canvas class="kd-map" id="kd-map" width="224" height="250" aria-hidden="true"></canvas>
+      </div>
+      <div class="kd-right">
+        <div class="kd-list"><h4>📋 Find these</h4><ul id="kd-list"></ul></div>
+        <div class="kd-tools">
+          <button class="kd-btn" id="kd-snd" type="button" aria-label="Toggle music">🔇</button>
+          <button class="kd-btn" id="kd-fs" type="button" aria-label="Toggle full screen">⛶</button>
+        </div>
+      </div>
+    </div>
+    <div class="kd-prompt" id="kd-prompt" style="display:none"></div>
+    <div class="kd-banner" id="kd-banner" aria-live="assertive"></div>
+    <div class="kd-touch">
+      <div class="kd-pad">
+        <div></div><button type="button" id="kp-up" aria-label="Up">▲</button><div></div>
+        <button type="button" id="kp-left" aria-label="Left">◀</button><div></div><button type="button" id="kp-right" aria-label="Right">▶</button>
+        <div></div><button type="button" id="kp-down" aria-label="Down">▼</button><div></div>
+      </div>
+      <button class="kd-collect" id="kp-collect" type="button">COLLECT</button>
+    </div>
+    <div class="kd-intro" id="kd-intro">
+      <div class="kd-card">
+        <p class="kd-eyebrow">${act.emoji} ${esc(act.name)}</p>
+        <h2>Kit Dash</h2>
+        <p>${practice?'You already own everything, so this is a <b>practice round</b> with this quest’s essentials.':'Push your cart through the store and find your starter kit before time runs out.'}</p>
+        <ul class="kd-need">${targetIds.map(id=>`<li>${(ITEMS[id]||{}).e||'📦'} ${esc(labelOf(id))}</li>`).join('')}</ul>
+        <p><b>WASD / arrow keys</b> to steer · <b>E</b> or <b>Space</b> to collect · <b>Esc</b> to exit.<br>Read the labels: some products are decoys! On phones, use the on-screen pad and the Collect button.</p>
+        <p>All ${total} → <b>20%</b> · at least half → <b>15%</b> · otherwise <b>10%</b> (demo coupon, not redeemable).</p>
+        <button class="btn btn-lime btn-lg" id="kd-start" type="button">Start · ${KD_TIME}s</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  document.body.classList.add('kd-open');
+  document.documentElement.style.overflow='hidden';
+  const $=id=>ov.querySelector('#'+id);
+  const stage=$('kd-stage');
+
+  /* ----- 3. Clean-up registry (so a failure or an exit never leaves anything behind) ----- */
+  const undo=[];
+  const listen=(t,ev,fn,opt)=>{t.addEventListener(ev,fn,opt);undo.push(()=>t.removeEventListener(ev,fn,opt))};
+  let disposed=false,raf=0,finishTimer=0,cdTimer=0,bannerT=0;
+  let renderer=null,scene=null;
+  const textures=[],spriteMats=[],matCache=new Map();
+
+  function cleanup(){
+    if(disposed)return;disposed=true;
+    clearTimeout(finishTimer);clearTimeout(cdTimer);clearTimeout(bannerT);cancelAnimationFrame(raf);
+    undo.forEach(fn=>{try{fn()}catch(_){}});
+    try{
+      if(scene)scene.traverse(o=>{if(o.geometry)o.geometry.dispose()});
+      matCache.forEach(m=>m.dispose());spriteMats.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());
+      if(renderer){renderer.dispose();if(renderer.forceContextLoss)renderer.forceContextLoss()}
+    }catch(_){}
+    try{if(document.fullscreenElement&&document.exitFullscreen){const p=document.exitFullscreen();if(p&&p.catch)p.catch(()=>{})}}catch(_){}
+    ov.remove();
+    document.body.classList.remove('kd-open');document.documentElement.style.overflow='';
+    KD=null;
+  }
+  KD={exit:cleanup};
+
+  /* ----- 4. Renderer, scene, camera ----- */
+  renderer=new THREE.WebGLRenderer({antialias:true});   // throws if WebGL is unavailable (handled by startKitDash)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  stage.appendChild(renderer.domElement);
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0xAEE0FF);
+  const camera=new THREE.PerspectiveCamera(50,1,0.1,300);
+
+  const M=c=>{let m=matCache.get(c);if(!m){m=new THREE.MeshLambertMaterial({color:c});matCache.set(c,m)}return m};
+  const add=(g,geo,c,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{const m=new THREE.Mesh(geo,M(c));m.position.set(x,y,z);m.rotation.set(rx,ry,rz);g.add(m);return m};
+  const box=(g,w,h,d,c,x,y,z,rx,ry,rz)=>add(g,new THREE.BoxGeometry(w,h,d),c,x,y,z,rx,ry,rz);
+  const cyl=(g,rt,rb,h,c,x,y,z,rx,ry,rz)=>add(g,new THREE.CylinderGeometry(rt,rb,h,16),c,x,y,z,rx,ry,rz);
+  const sph=(g,r,c,x,y,z,sx=1,sy=1,sz=1)=>{const m=add(g,new THREE.SphereGeometry(r,16,12),c,x,y,z);m.scale.set(sx,sy,sz);return m};
+  const tor=(g,r,t,c,x,y,z,rx,ry,rz)=>add(g,new THREE.TorusGeometry(r,t,8,24),c,x,y,z,rx,ry,rz);
+  const hex=n=>'#'+n.toString(16).padStart(6,'0');
+
+  function canvasTex(w,h,paint){
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    paint(c.getContext('2d'),w,h);
+    const t=new THREE.CanvasTexture(c);t.anisotropy=4;textures.push(t);return t;
+  }
+  function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+  function wrapText(g,text,maxW,maxLines){
+    const words=text.split(' '),lines=[];let cur='';
+    for(const wd of words){const t=cur?cur+' '+wd:wd;if(g.measureText(t).width<=maxW)cur=t;else{if(cur)lines.push(cur);cur=wd}}
+    if(cur)lines.push(cur);
+    if(lines.length>maxLines){
+      const keep=lines.slice(0,maxLines);let last=keep[maxLines-1];
+      while(g.measureText(last+'…').width>maxW&&last.length>1)last=last.slice(0,-1);
+      keep[maxLines-1]=last+'…';return keep;
+    }
+    return lines;
+  }
+  function makeLabel(text,accent){
+    const tex=canvasTex(512,192,(g,w,h)=>{
+      g.clearRect(0,0,w,h);
+      g.fillStyle='#FFFFFF';rr(g,6,6,w-12,h-12,34);g.fill();
+      g.lineWidth=9;g.strokeStyle='#0B1F3A';g.stroke();
+      g.fillStyle=hex(accent);rr(g,20,20,w-40,18,9);g.fill();
+      g.fillStyle='#0B1F3A';g.font='800 46px "DM Sans",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';
+      const lines=wrapText(g,text,w-60,2);
+      lines.forEach((ln,i)=>g.fillText(ln,w/2,h/2+12+(i-(lines.length-1)/2)*54));
+    });
+    const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false});spriteMats.push(m);
+    const s=new THREE.Sprite(m);s.scale.set(6.2,2.325,1);return s;
+  }
+  function makePlane(w,h,paint,px=512,py=Math.round(512*h/w)){
+    const tex=canvasTex(px,py,paint);
+    return new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));
+  }
+
+  /* ----- 5. Lights ----- */
+  scene.add(new THREE.HemisphereLight(0xFFFFFF,0xBBCCDD,0.95));
+  const sun=new THREE.DirectionalLight(0xFFFFFF,0.6);sun.position.set(20,40,25);scene.add(sun);
+
+  /* ----- 6. The colourful store ----- */
+  const PAL=[0xFF6B2C,0x00A3E0,0xC8F54A,0xFF9DBB,0x9B5DE5,0xFFD23F,0x2FB36B];
+  const colliders=[];                       // {x,z,hw,hd}
+  const shelfRects=[];                      // for the minimap
+  const BOUND={x:22.6,zMin:-26.6,zMax:27.4};
+
+  const outside=new THREE.Mesh(new THREE.PlaneGeometry(300,300),M(0xCFE8F7));
+  outside.rotation.x=-Math.PI/2;outside.position.y=-0.06;scene.add(outside);
+  const floorTex=canvasTex(512,512,(g)=>{
+    const cols=['#FFF3D6','#D6EEFF','#FFE0EC','#E3F9C8'];
+    for(let i=0;i<8;i++)for(let j=0;j<8;j++){g.fillStyle=cols[(i+j*2)%4];g.fillRect(i*64,j*64,64,64)}
+    g.strokeStyle='rgba(11,31,58,.08)';g.lineWidth=2;
+    for(let i=0;i<=8;i++){g.beginPath();g.moveTo(i*64,0);g.lineTo(i*64,512);g.stroke();g.beginPath();g.moveTo(0,i*64);g.lineTo(512,i*64);g.stroke()}
+  });
+  floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(6,7);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(48,56),new THREE.MeshLambertMaterial({map:floorTex}));
+  floor.rotation.x=-Math.PI/2;scene.add(floor);
+
+  const rug=(w,d,x,z,c)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M(c));m.rotation.x=-Math.PI/2;m.position.set(x,0.02,z);scene.add(m)};
+  rug(12,10,0,-0.5,0xFFD23F);rug(10,8,0,-0.5,0xFFF3A8);
+  rug(14,4,0,24.5,0xC8F54A);rug(48,1,0,21.8,0xFF6B2C);rug(48,1,0,-5.6,0x00A3E0);
+
+  // walls
+  const wallCols=[0x0069B4,0xFF6B2C,0x2FB36B,0xFF9DBB,0x9B5DE5,0xFFD23F];
+  wallCols.forEach((c,i)=>{const g=new THREE.Group();box(g,8.05,8,0.8,c,0,4,0);g.position.set(-20+i*8,0,-28.4);scene.add(g)});
+  [-1,1].forEach(side=>{
+    const g=new THREE.Group();
+    box(g,0.8,7,56,0x0069B4,0,3.5,0);box(g,0.82,0.8,56,0xC8F54A,0,5.2,0);box(g,0.82,0.5,56,0xFFD23F,0,4.4,0);
+    g.position.set(side*24.4,0,0);scene.add(g);
+  });
+  const banner=makePlane(26,3.2,(g,w,h)=>{
+    g.fillStyle='#0B1F3A';g.fillRect(0,0,w,h);g.fillStyle='#C8F54A';g.fillRect(0,h-18,w,18);
+    g.fillStyle='#FFFFFF';g.font='800 64px "DM Sans",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';
+    g.fillText('SIDEQUEST  SPORTS STORE',w/2,h/2-6);
+  },1024,126);
+  banner.position.set(0,6.4,-27.9);scene.add(banner);
+
+  const POSTERS=[['RUN','🏃','#00A3E0'],['PLAY','⚽','#2FB36B'],['SWIM','🏊','#0069B4'],['CLIMB','🧗','#9B5DE5'],
+                 ['RACKET','🏸','#FF6B2C'],['RIDE','🚴','#FFD23F'],['YOGA','🧘','#FF9DBB'],['SKATE','🛹','#C8F54A']];
+  POSTERS.forEach((p,i)=>{
+    const side=i<4?-1:1,zi=-19+(i%4)*12;
+    const pl=makePlane(5.2,3.4,(g,w,h)=>{
+      g.fillStyle=p[2];g.fillRect(0,0,w,h);g.fillStyle='rgba(255,255,255,.28)';g.beginPath();g.arc(w*0.78,h*0.3,h*0.55,0,7);g.fill();
+      g.font='150px sans-serif';g.textAlign='left';g.textBaseline='middle';g.fillText(p[1],26,h*0.46);
+      g.fillStyle='#0B1F3A';g.font='800 64px "DM Sans",Arial,sans-serif';g.textAlign='right';g.fillText(p[0],w-28,h*0.8);
+      g.lineWidth=14;g.strokeStyle='#0B1F3A';g.strokeRect(0,0,w,h);
+    },512,334);
+    pl.position.set(side*23.95,3.2,zi);pl.rotation.y=side<0?Math.PI/2:-Math.PI/2;scene.add(pl);
+  });
+
+  // entrance arch
+  {const g=new THREE.Group();
+   box(g,0.7,6.5,0.7,0x0069B4,-5,3.25,0);box(g,0.7,6.5,0.7,0x0069B4,5,3.25,0);box(g,11,1.4,0.8,0xFF6B2C,0,6.6,0);
+   g.position.set(0,0,28.3);scene.add(g);
+   const wl=makePlane(10,1.2,(c,pw,ph)=>{c.fillStyle='#FF6B2C';c.fillRect(0,0,pw,ph);c.fillStyle='#fff';c.font='800 70px "DM Sans",Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('WELCOME · GRAB YOUR KIT',pw/2,ph/2)},1024,122);
+   wl.position.set(0,6.6,27.85);scene.add(wl);}
+
+  // shelves (aisles) with coloured goods on both faces
+  const ROWS=[-16,-6,6,16],SEGS=[{zc:-14.5,len:18},{zc:12.5,len:16}];
+  const goods=[],slots=[];
+  let aisleNo=0;
+  ROWS.forEach((rx,ri)=>{
+    SEGS.forEach((sg,si)=>{
+      aisleNo++;
+      const col=PAL[(ri*2+si)%PAL.length];
+      const g=new THREE.Group();
+      box(g,3,2.2,sg.len,0xE8EEF5,0,1.1,0);
+      box(g,3.3,0.3,sg.len+0.3,col,0,2.35,0);
+      [0.72,1.46].forEach(y=>box(g,3.06,0.08,sg.len+0.04,col,0,y,0));
+      g.position.set(rx,0,sg.zc);scene.add(g);
+      colliders.push({x:rx,z:sg.zc,hw:1.65,hd:sg.len/2+0.15});
+      shelfRects.push({x:rx,z:sg.zc,hw:1.6,hd:sg.len/2,c:col});
+      const zEnd=sg.zc+sg.len/2+0.45;
+      const pg=new THREE.Group();box(pg,0.18,5.4,0.18,0x263238,-1.5,2.7,0);box(pg,0.18,5.4,0.18,0x263238,1.5,2.7,0);pg.position.set(rx,0,zEnd);scene.add(pg);
+      const no=aisleNo;
+      const sn=makePlane(4.4,1.3,(c,w,h)=>{c.fillStyle=hex(col);c.fillRect(0,0,w,h);c.lineWidth=14;c.strokeStyle='#0B1F3A';c.strokeRect(0,0,w,h);c.fillStyle='#0B1F3A';c.font='800 78px "DM Sans",Arial,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText('AISLE '+no,w/2,h/2+4)},512,151);
+      sn.position.set(rx,4.9,zEnd+0.05);scene.add(sn);
+      colliders.push({x:rx,z:zEnd,hw:1.7,hd:0.3});
+      [-1,1].forEach(side=>{
+        [0.32,1.08,1.84].forEach(y=>{
+          for(let z=-sg.len/2+1;z<sg.len/2-0.6;z+=1.25){
+            const h=0.42+Math.random()*0.2;
+            goods.push({x:rx+side*1.68,y:y+h/2-0.1+0.02,z:sg.zc+z+(Math.random()-0.5)*0.15,sx:0.36,sy:h,sz:0.8+Math.random()*0.3,c:PAL[Math.floor(Math.random()*PAL.length)]});
+          }
+        });
+      });
+      [-sg.len/4,sg.len/4].forEach(dz=>slots.push({x:rx,z:sg.zc+dz}));
+    });
+  });
+  // one InstancedMesh draws every box of goods.
+  // IMPORTANT: Three r128 culls an InstancedMesh using ONLY its origin, so without
+  // frustumCulled=false all shelf goods vanish whenever the origin leaves the view.
+  {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0xFFFFFF}),goods.length);
+   const d=new THREE.Object3D(),cc=new THREE.Color();
+   goods.forEach((it,i)=>{d.position.set(it.x,it.y,it.z);d.scale.set(it.sx,it.sy,it.sz);d.updateMatrix();im.setMatrixAt(i,d.matrix);im.setColorAt(i,cc.setHex(it.c))});
+   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;
+   im.frustumCulled=false;
+   scene.add(im);}
+
+  // centre podium (landmark)
+  const podium=new THREE.Group();
+  cyl(podium,2.2,2.4,0.5,0xFFD23F,0,0.25,0);cyl(podium,1.6,1.8,0.4,0xFF6B2C,0,0.7,0);
+  const bigBall=sph(podium,1.1,0x00A3E0,0,2.0,0);sph(podium,1.12,0xFFFFFF,0,2.0,0,1,0.18,1);
+  podium.position.set(0,0,-0.5);scene.add(podium);
+  colliders.push({x:0,z:-0.5,hw:2.3,hd:2.3});
+
+  // checkout counters
+  [[-15,0x0069B4],[15,0xFF6B2C]].forEach(([x,c])=>{
+    const g=new THREE.Group();box(g,6,1.2,2.2,c,0,0.6,0);box(g,6.2,0.15,2.4,0xC8F54A,0,1.28,0);box(g,0.9,0.7,0.1,0x263238,1.5,1.8,-0.3);
+    g.position.set(x,0,26.2);scene.add(g);colliders.push({x,z:26.2,hw:3.1,hd:1.2});
+    const cs=makePlane(4,1,(cv,w,h)=>{cv.fillStyle=hex(c);cv.fillRect(0,0,w,h);cv.fillStyle='#fff';cv.font='800 64px "DM Sans",Arial,sans-serif';cv.textAlign='center';cv.textBaseline='middle';cv.fillText('CHECKOUT',w/2,h/2+4)},512,128);
+    cs.position.set(x,3.4,26.2);scene.add(cs);
+  });
+  // plants
+  [[-21,24],[21,24],[-21,-24.5],[21,-24.5]].forEach(([x,z])=>{
+    const g=new THREE.Group();cyl(g,0.7,0.55,0.9,0xFF6B2C,0,0.45,0);sph(g,0.9,0x2FB36B,0,1.5,0);sph(g,0.6,0x66BB6A,0.3,2.1,0.1);
+    g.position.set(x,0,z);scene.add(g);colliders.push({x,z,hw:0.8,hd:0.8});
+  });
+
+  /* ----- 7. Products ----- */
+  function buildProduct(id){
+    const [type,c,a]=PROD[id]||['box',0x0069B4,0xFFFFFF];
+    const g=new THREE.Group();
+    switch(type){
+      case 'shoe':box(g,1.3,.18,.55,0xFFFFFF,0,.1,0);box(g,.85,.38,.5,c,-.15,.38,0);box(g,.5,.26,.5,a,.4,.3,0);box(g,.3,.1,.3,0x222222,-.45,.62,0);break;
+      case 'shirt':box(g,.9,1.0,.26,c,0,.6,0);box(g,.42,.32,.26,c,-.62,.95,0,0,0,.7);box(g,.42,.32,.26,c,.62,.95,0,0,0,-.7);box(g,.34,.1,.28,a,0,1.12,0);break;
+      case 'bottle':cyl(g,.28,.28,1.0,c,0,.5,0);cyl(g,.14,.14,.22,0x263238,0,1.12,0);cyl(g,.29,.29,.2,a,0,.5,0);break;
+      case 'racket':tor(g,.4,.05,c,0,1.05,0);box(g,.7,.02,.02,0xFFFFFF,0,1.05,0);box(g,.02,.7,.02,0xFFFFFF,0,1.05,0);cyl(g,.05,.05,.8,0x263238,0,.4,0);break;
+      case 'paddle':cyl(g,.46,.46,.07,c,0,1.0,0,Math.PI/2,0,0);box(g,.12,.6,.1,0xD7A86E,0,.45,0);break;
+      case 'bat':box(g,.34,1.0,.12,c,0,.85,0);cyl(g,.05,.05,.5,a,0,.25,0);break;
+      case 'bag':box(g,.9,1.0,.5,c,0,.55,0);box(g,.6,.4,.12,a,0,.4,.3);box(g,.7,.12,.3,0x263238,0,1.1,0);break;
+      case 'helmet':sph(g,.55,c,0,.65,0,1,.85,1.15);box(g,.9,.1,.06,a,0,.7,.62);break;
+      case 'cap':sph(g,.45,c,0,.5,0,1,.65,1);box(g,.5,.05,.4,a,.5,.35,0);break;
+      case 'mat':cyl(g,.35,.35,1.2,c,0,.5,0,0,0,Math.PI/2);cyl(g,.36,.36,.2,a,0,.5,0,0,0,Math.PI/2);break;
+      case 'goggles':tor(g,.22,.06,c,-.3,.55,0);tor(g,.22,.06,c,.3,.55,0);box(g,.2,.08,.08,a,0,.55,0);box(g,1.25,.06,.06,a,0,.55,-.1);break;
+      case 'towel':box(g,.9,.35,.65,c,0,.33,0);box(g,.92,.08,.67,a,0,.5,0);break;
+      case 'pants':box(g,.36,1.0,.3,c,-.2,.6,0);box(g,.36,1.0,.3,c,.2,.6,0);box(g,.82,.2,.32,a,0,1.12,0);break;
+      case 'board':box(g,1.6,.08,.45,c,0,.4,0);[-.55,.55].forEach(x=>[-.2,.2].forEach(z=>cyl(g,.1,.1,.08,a,x,.28,z,Math.PI/2,0,0)));break;
+      case 'pads':[-.45,0,.45].forEach(x=>box(g,.38,.5,.25,c,x,.4,0));box(g,1.3,.06,.28,a,0,.7,0);break;
+      case 'shuttle':add(g,new THREE.ConeGeometry(.32,.7,14),c,0,.8,0,Math.PI,0,0);sph(g,.14,a,0,.35,0);break;
+      case 'balls':[[-.3,.3,0],[.3,.3,0],[0,.3,.4],[0,.7,.15]].forEach(p=>sph(g,.24,c,p[0],p[1],p[2]));break;
+      case 'socks':box(g,.3,.8,.26,c,-.25,.55,0);box(g,.3,.8,.26,c,.25,.55,0);box(g,.32,.16,.28,a,-.25,.95,0);box(g,.32,.16,.28,a,.25,.95,0);break;
+      case 'gloves':box(g,.45,.55,.2,c,-.3,.5,0);box(g,.45,.55,.2,c,.3,.5,0);box(g,.16,.3,.2,a,-.6,.45,0,0,0,.5);box(g,.16,.3,.2,a,.6,.45,0,0,0,-.5);break;
+      case 'band':tor(g,.42,.09,c,0,.55,0);tor(g,.28,.07,a,0,.55,0);break;
+      case 'glasses':sph(g,.25,c,-.3,.55,0,1,.8,.3);sph(g,.25,c,.3,.55,0,1,.8,.3);box(g,.2,.05,.05,a,0,.58,0);break;
+      default:add(g,new THREE.DodecahedronGeometry(.5),c,0,.55,0);
+    }
+    return g;
+  }
+
+  /* ----- 8. Place 15 products: every target + decoys, shuffled over shelf spots ----- */
+  const decoys=shuffle(Object.keys(ITEMS).filter(k=>k!=='courtshoes_o'&&!targetSet.has(k)&&PROD[k])).slice(0,Math.max(0,KD_ITEM_COUNT-total));
+  const ids=shuffle([...targetIds,...decoys]);
+  const spots=shuffle(slots);
+  const items=[];
+  ids.forEach((id,i)=>{
+    const sl=spots[i%spots.length];
+    const grp=new THREE.Group();
+    cyl(grp,1.1,1.1,0.16,PAL[i%PAL.length],0,0.08,0);
+    const prop=buildProduct(id);prop.position.y=0.16;prop.scale.setScalar(1.35);grp.add(prop);
+    const lbl=makeLabel(labelOf(id),(PROD[id]||[0,0x0069B4])[1]);lbl.position.y=3.6;grp.add(lbl);
+    grp.position.set(sl.x,2.5,sl.z);scene.add(grp);
+    items.push({id,label:labelOf(id),isTarget:targetSet.has(id),x:sl.x,z:sl.z,grp,prop,collected:false,k:1});
+  });
+
+  /* ----- 9. State ----- */
+  const keys={up:false,down:false,left:false,right:false};
+  let started=false,counting=false,running=true;
+  let timeLeft=KD_TIME,last=performance.now(),idleT=0,cool=0,nearby=null,lastSec=-1,walkT=0;
+  let px=0,pz=24,angle=Math.PI,camK=1;
+  const SPEED=9,RADIUS=0.7,NEAR=4.0;
+  const camPos=new THREE.Vector3(0,26,36),camLook=new THREE.Vector3(),tp=new THREE.Vector3(),tl=new THREE.Vector3();
+
+  /* ----- 10. Shopper + cart (placed at the entrance from the very start) ----- */
+  const player=new THREE.Group();
+  const legL=new THREE.Group(),legR=new THREE.Group();
+  [[legL,-0.22],[legR,0.22]].forEach(([lg,x])=>{box(lg,.32,.9,.35,0x0B1F3A,0,-0.45,0);lg.position.set(x,0.9,0);player.add(lg)});
+  box(player,.95,1.1,.55,0x0069B4,0,1.45,0);box(player,.5,.22,.58,0xC8F54A,0,1.55,0);
+  sph(player,.38,0xFFD23F,0,2.35,0);sph(player,.4,0xC8F54A,0,2.55,0,1,.55,1);box(player,.5,.05,.4,0xC8F54A,0,2.5,.38);
+  box(player,.2,.2,.95,0x0069B4,-.55,1.55,.5);box(player,.2,.2,.95,0x0069B4,.55,1.55,.5);
+  const cart=new THREE.Group();
+  box(cart,1.3,.08,1.5,0xC8F54A,0,.6,1.7);
+  box(cart,.06,.55,1.5,0xFF6B2C,-.65,.9,1.7);box(cart,.06,.55,1.5,0xFF6B2C,.65,.9,1.7);
+  box(cart,1.3,.55,.06,0xFF6B2C,0,.9,.95);box(cart,1.3,.55,.06,0xFF6B2C,0,.9,2.45);
+  cyl(cart,.06,.06,1.4,0x263238,0,1.5,.95,0,0,Math.PI/2);
+  [[-.55,1.15],[.55,1.15],[-.55,2.25],[.55,2.25]].forEach(([x,z])=>cyl(cart,.15,.15,.1,0x263238,x,.15,z,0,0,Math.PI/2));
+  player.add(cart);
+  player.position.set(px,0,pz);player.rotation.y=angle;
+  scene.add(player);
+
+  /* ----- 11. HUD refs, list, minimap ----- */
+  const listEl=$('kd-list'),timeEl=$('kd-time'),foundEl=$('kd-found'),promptEl=$('kd-prompt'),bannerEl=$('kd-banner');
+  function drawList(){
+    listEl.innerHTML=targetIds.map(id=>{const got=collected.has(id);return `<li class="${got?'got':''}"><span>${got?'✅':'⬜'}</span><span>${esc(labelOf(id))}</span></li>`}).join('');
+    foundEl.textContent=`🧺 ${collected.size}/${total}`;
+  }
+  drawList();
+
+  const mapEl=$('kd-map'),mctx=mapEl.getContext('2d'),MW=mapEl.width,MH=mapEl.height;
+  const MS=Math.min(MW/50,MH/58);
+  const mx=x=>MW/2+x*MS,mz=z=>MH/2+z*MS;
+  function drawMap(){
+    mctx.clearRect(0,0,MW,MH);
+    mctx.fillStyle='#FFF3D6';mctx.fillRect(0,0,MW,MH);
+    shelfRects.forEach(r=>{mctx.fillStyle=hex(r.c);mctx.fillRect(mx(r.x-r.hw),mz(r.z-r.hd),r.hw*2*MS,r.hd*2*MS)});
+    mctx.fillStyle='#FFD23F';mctx.beginPath();mctx.arc(mx(0),mz(-0.5),2.2*MS,0,Math.PI*2);mctx.fill();
+    mctx.fillStyle='#0B1F3A';mctx.font='800 22px sans-serif';mctx.textAlign='center';mctx.fillText('ENTRANCE',MW/2,MH-6);
+    mctx.save();mctx.translate(mx(px),mz(pz));mctx.rotate(Math.PI-angle);
+    mctx.fillStyle='#FF6B2C';mctx.strokeStyle='#0B1F3A';mctx.lineWidth=3;
+    mctx.beginPath();mctx.moveTo(0,-13);mctx.lineTo(10,10);mctx.lineTo(-10,10);mctx.closePath();mctx.fill();mctx.stroke();
+    mctx.restore();
+  }
+
+  function resize(){
+    const w=stage.clientWidth||window.innerWidth,h=stage.clientHeight||window.innerHeight;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+    camK=Math.min(2.2,Math.max(1,1.15/(w/h)));
+  }
+  resize();
+
+  const blocked=(nx,nz)=>{
+    if(nx<-BOUND.x||nx>BOUND.x||nz<BOUND.zMin||nz>BOUND.zMax)return true;
+    for(const c of colliders){if(Math.abs(nx-c.x)<c.hw+RADIUS&&Math.abs(nz-c.z)<c.hd+RADIUS)return true}
+    return false;
+  };
+
+  function showBanner(txt,ms){
+    clearTimeout(bannerT);
+    bannerEl.textContent=txt;bannerEl.classList.remove('show');void bannerEl.offsetWidth;bannerEl.classList.add('show');
+    if(ms)bannerT=setTimeout(()=>bannerEl.classList.remove('show'),ms);
+  }
+
+  function tryCollect(){
+    if(!started||!running)return;
+    const now=performance.now();if(now<cool)return;
+    if(!nearby){toast('Get closer to a product first');cool=now+500;return}
+    cool=now+450;
+    if(!nearby.isTarget){toast(`“${nearby.label}” is not on your kit list`);return}
+    nearby.collected=true;collected.add(nearby.id);scene.remove(nearby.grp);
+    const n=collected.size-1;
+    const pkg=new THREE.Mesh(new THREE.BoxGeometry(.42,.36,.42),M(PAL[n%PAL.length]));
+    pkg.position.set(((n%3)-1)*.38,.85,1.7+(Math.floor(n/3)-.2)*.5);cart.add(pkg);
+    toast(`✅ Added: ${nearby.label}`);
+    nearby=null;drawList();
+    if(collected.size===total)finish(true);
+  }
+
+  function finish(allFound){
+    if(!running)return;running=false;
+    keys.up=keys.down=keys.left=keys.right=false;
+    const found=collected.size,used=KD_TIME-Math.max(0,timeLeft);
+    const tier=found===total?'gold':(found>=Math.ceil(total/2)?'silver':'bronze');
+    const discount={gold:20,silver:15,bronze:10}[tier];
+    const rand=Math.random().toString(36).substring(2,8).toUpperCase();
+    const coupon={code:`SIDEQUEST-${act.id.toUpperCase()}-${rand}`,discount,tier};
+    S.gameResult={found,total,used,practice,coupon};S.gameCoupon=coupon;
+    track('game_end',{found,total,tier});
+    promptEl.style.display='none';
+    showBanner(allFound?'🎉 KIT COMPLETE!':'⏰ TIME’S UP!',0);
+    finishTimer=setTimeout(()=>{if(disposed)return;cleanup();go('gameresult')},1600);
+  }
+
+  function beginCountdown(){
+    if(started||counting||disposed)return;
+    counting=true;
+    $('kd-intro').style.display='none';
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    ov.focus();
+    const seq=['3','2','1','GO!'];let i=0;
+    const step=()=>{
+      if(disposed)return;
+      showBanner(seq[i],650);i++;
+      if(i<seq.length)cdTimer=setTimeout(step,800);
+      else{started=true;counting=false;timeLeft=KD_TIME;last=performance.now()}
+    };
+    step();
+  }
+
+  /* ----- 12. Input (arrow keys / space are swallowed so the page never scrolls) ----- */
+  const NAVKEYS=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'];
+  const onKeyDown=e=>{
+    const c=e.code,live=started||counting;
+    if(NAVKEYS.includes(c))e.preventDefault();
+    if(c==='Space'&&live)e.preventDefault();
+    if(c==='Escape'){cleanup();return}
+    if(!started||!running)return;
+    if(c==='KeyW'||c==='ArrowUp')keys.up=true;
+    if(c==='KeyS'||c==='ArrowDown')keys.down=true;
+    if(c==='KeyA'||c==='ArrowLeft')keys.left=true;
+    if(c==='KeyD'||c==='ArrowRight')keys.right=true;
+    if((c==='KeyE'||c==='Space')&&!e.repeat)tryCollect();
+  };
+  const onKeyUp=e=>{
+    const c=e.code;
+    if(NAVKEYS.includes(c)||(c==='Space'&&(started||counting)))e.preventDefault();
+    if(c==='KeyW'||c==='ArrowUp')keys.up=false;
+    if(c==='KeyS'||c==='ArrowDown')keys.down=false;
+    if(c==='KeyA'||c==='ArrowLeft')keys.left=false;
+    if(c==='KeyD'||c==='ArrowRight')keys.right=false;
+  };
+  const clearKeys=()=>{keys.up=keys.down=keys.left=keys.right=false};
+  const onVis=()=>{last=performance.now();if(document.hidden)clearKeys()};
+  listen(window,'keydown',onKeyDown,{capture:true});
+  listen(window,'keyup',onKeyUp,{capture:true});
+  listen(window,'resize',resize);
+  listen(window,'blur',clearKeys);
+  listen(document,'visibilitychange',onVis);
+  listen(document,'fullscreenchange',resize);
+  listen(ov,'touchmove',e=>e.preventDefault(),{passive:false});
+  listen(ov,'contextmenu',e=>e.preventDefault());
+  listen(renderer.domElement,'webglcontextlost',e=>{e.preventDefault();toast('Graphics were interrupted, so the game closed.');cleanup()});
+
+  const hold=(id,k)=>{
+    const el=$(id);
+    el.addEventListener('pointerdown',e=>{e.preventDefault();if(started&&running)keys[k]=true;try{el.setPointerCapture(e.pointerId)}catch(_){}});
+    ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>{keys[k]=false}));
+  };
+  hold('kp-up','up');hold('kp-down','down');hold('kp-left','left');hold('kp-right','right');
+  $('kp-collect').addEventListener('pointerdown',e=>{e.preventDefault();tryCollect()});
+  promptEl.addEventListener('click',tryCollect);
+  $('kd-exit').addEventListener('click',cleanup);
+  $('kd-start').addEventListener('click',beginCountdown);
+  const snd=$('kd-snd');
+  const syncSnd=()=>{snd.textContent=(typeof musicPlaying!=='undefined'&&musicPlaying)?'🔊':'🔇'};
+  syncSnd();
+  snd.addEventListener('click',()=>{toggleMusic();setTimeout(syncSnd,300)});
+  $('kd-fs').addEventListener('click',()=>{
+    try{
+      if(document.fullscreenElement){const p=document.exitFullscreen();if(p&&p.catch)p.catch(()=>{})}
+      else if(ov.requestFullscreen){const p=ov.requestFullscreen();if(p&&p.catch)p.catch(()=>toast('Full screen is not available here.'))}
+      else toast('Full screen is not supported here. The game already fills the page.');
+    }catch(_){toast('Full screen is not available here.')}
+  });
+
+  /* ----- 13. Main loop ----- */
+  function tick(now){
+    if(disposed)return;
+    raf=requestAnimationFrame(tick);
+    const dt=Math.min((now-last)/1000,0.1);last=now;
+
+    if(started&&running){
+      timeLeft-=dt;
+      const sec=Math.max(0,Math.ceil(timeLeft));
+      if(sec!==lastSec){lastSec=sec;timeEl.textContent=`⏱ ${sec}s`;timeEl.classList.toggle('warn',sec<=15)}
+      if(timeLeft<=0)finish(false);
+
+      let dx=0,dz=0;
+      if(keys.up)dz-=1;if(keys.down)dz+=1;if(keys.left)dx-=1;if(keys.right)dx+=1;
+      const moving=dx!==0||dz!==0;
+      if(moving){
+        const len=Math.hypot(dx,dz);dx/=len;dz/=len;
+        const nx=px+dx*SPEED*dt,nz=pz+dz*SPEED*dt;
+        if(!blocked(nx,pz))px=nx;
+        if(!blocked(px,nz))pz=nz;
+        const target=Math.atan2(dx,dz);
+        let diff=target-angle;diff=Math.atan2(Math.sin(diff),Math.cos(diff));
+        angle+=diff*Math.min(1,dt*12);
+        walkT+=dt*12;
+      }
+      legL.rotation.x=moving?Math.sin(walkT)*0.6:0;legR.rotation.x=moving?-Math.sin(walkT)*0.6:0;
+      player.position.set(px,0,pz);player.rotation.y=angle;
+
+      // nearest product within reach
+      nearby=null;let best=NEAR;
+      for(const it of items){if(it.collected)continue;const d=Math.hypot(px-it.x,pz-it.z);if(d<best){best=d;nearby=it}}
+      if(nearby){
+        promptEl.style.display='block';
+        promptEl.textContent=`Collect: ${nearby.label}`+((window.matchMedia&&matchMedia('(hover:none)').matches)?'':'  [E]');
+      }else promptEl.style.display='none';
+    }
+
+    // camera: slow orbit on the intro card, then glide in behind the shopper
+    if(!started&&!counting){
+      idleT+=dt;
+      camera.position.set(Math.sin(idleT*0.18)*30*camK,26*camK,Math.cos(idleT*0.18)*30*camK+6);
+      camera.lookAt(0,0,2);
+      camPos.copy(camera.position);camLook.set(0,0,2);
+    }else{
+      tp.set(px,12*camK,pz+14*camK);camPos.lerp(tp,1-Math.exp(-(started?5:3)*dt));
+      tl.set(px,1,pz-1);camLook.lerp(tl,1-Math.exp(-8*dt));
+      camera.position.copy(camPos);camera.lookAt(camLook);
+    }
+
+    // product animation (spin; the nearest one grows a little)
+    for(const it of items){
+      if(it.collected)continue;
+      it.prop.rotation.y+=1.4*dt;
+      const goal=(nearby===it&&running&&started)?1.18:1;
+      it.k+=(goal-it.k)*Math.min(1,dt*10);
+      it.grp.scale.setScalar(it.k);
+    }
+    podium.rotation.y+=0.4*dt;bigBall.rotation.x+=0.6*dt;
+
+    drawMap();
+    renderer.render(scene,camera);
+  }
+  raf=requestAnimationFrame(tick);
+  setTimeout(()=>{const b=ov.querySelector('#kd-start');if(b&&!disposed)b.focus()},50);
 }
 
-function initGame(){
- const canvas=document.getElementById('gameCanvas');
- if(!canvas)return;
- const ctx=canvas.getContext('2d');
- const dpr=Math.min(window.devicePixelRatio||1,2);
- const W=800,H=420;
- canvas.width=W*dpr;canvas.height=H*dpr;
- ctx.scale(dpr,dpr);
-
- const act=S.chosen;
- const theme=THEMES[act.id]||THEMES.cubbon;
-
- const COURSE_LENGTH=3600;
- const horizonY=140;
- const laneX=[-130,0,130];
-
- let playerLane=1;
- let targetLane=1;
- let laneLerp=0;
- let playerZ=0;
- let playerY=0;
- let vy=0;
- let isJumping=false;
- let isDucking=false;
- let duckTimer=0;
-
- let speed=22;
- let baseSpeed=22;
- let boostTimer=0;
- let stumbleTimer=0;
- let gameRunning=true;
- let startTime=Date.now();
- let elapsedSec=0;
-
- // Generate 3D Obstacles & Tokens along the track
- const objects=[];
- for(let z=400;z<COURSE_LENGTH-400;z+=180+Math.random()*80){
-   const lane=Math.floor(Math.random()*3);
-   const type=Math.random()<0.35?'token':(Math.random()<0.5?'hurdle':'barrier');
-   objects.push({z,lane,type,hit:false});
- }
-
- function jump(){
-   if(!isJumping&&!isDucking){
-     isJumping=true;
-     vy=14;
-   }
- }
- function duck(){
-   if(!isJumping){
-     isDucking=true;
-     duckTimer=35;
-   }
- }
-
- const onKey=e=>{
-   if(e.code==='ArrowLeft'||e.key==='a'){
-     if(targetLane>0)targetLane--;
-   }
-   if(e.code==='ArrowRight'||e.key==='d'){
-     if(targetLane<2)targetLane++;
-   }
-   if(e.code==='Space'||e.code==='ArrowUp'||e.key==='w'){
-     e.preventDefault();
-     jump();
-   }
-   if(e.code==='ArrowDown'||e.key==='s'){
-     e.preventDefault();
-     duck();
-   }
- };
-
- const onTouch=e=>{
-   const rect=canvas.getBoundingClientRect();
-   const touch=e.touches&&e.touches[0];
-   const tx=(touch?touch.clientX:e.clientX)-rect.left;
-   const ty=(touch?touch.clientY:e.clientY)-rect.top;
-   const relX=tx/rect.width;
-   const relY=ty/rect.height;
-
-   if(relY<0.35){
-     jump();
-   }else if(relY>0.7){
-     duck();
-   }else{
-     if(relX<0.4&&targetLane>0)targetLane--;
-     else if(relX>0.6&&targetLane<2)targetLane++;
-   }
- };
-
- window.addEventListener('keydown',onKey);
- canvas.addEventListener('touchstart',onTouch,{passive:false});
- canvas.addEventListener('mousedown',onTouch);
-
- function cleanup(){
-   window.removeEventListener('keydown',onKey);
-   canvas.removeEventListener('touchstart',onTouch);
-   canvas.removeEventListener('mousedown',onTouch);
- }
-
- function project(x,y,z){
-   const relZ=z-playerZ;
-   if(relZ<=0)return null;
-   const fov=240;
-   const scale=fov/relZ;
-   const sx=W/2+x*scale;
-   const sy=horizonY+(H-horizonY)*0.45+y*scale;
-   return {x:sx,y:sy,scale,relZ};
- }
-
- function update(){
-   if(!gameRunning)return;
-
-   elapsedSec=(Date.now()-startTime)/1000;
-
-   // Speed calculations
-   if(boostTimer>0){
-     boostTimer--;
-     speed=34;
-   }else if(stumbleTimer>0){
-     stumbleTimer--;
-     speed=13;
-   }else{
-     speed=baseSpeed;
-   }
-
-   playerZ+=speed;
-
-   // Smooth lane movement
-   laneLerp+=(targetLane-laneLerp)*0.22;
-   playerLane=targetLane;
-
-   // Jump physics
-   if(isJumping){
-     playerY+=vy;
-     vy-=0.9;
-     if(playerY<=0){
-       playerY=0;
-       isJumping=false;
-     }
-   }
-
-   // Duck timer
-   if(isDucking){
-     duckTimer--;
-     if(duckTimer<=0)isDucking=false;
-   }
-
-   // Collisions
-   for(const obj of objects){
-     if(obj.hit)continue;
-     const dz=obj.z-playerZ;
-     if(dz>-20&&dz<40){
-       if(Math.abs(laneLerp-obj.lane)<0.55){
-         obj.hit=true;
-         if(obj.type==='token'){
-           boostTimer=60;
-           toast('⚡ SQ Token Boost!');
-         }else if(obj.type==='hurdle'){
-           if(playerY<18){
-             stumbleTimer=50;
-             toast('💥 Hurdle Stumble!');
-           }
-         }else if(obj.type==='barrier'){
-           if(!isDucking){
-             stumbleTimer=50;
-             toast('💥 Duck to clear barriers!');
-           }
-         }
-       }
-     }
-   }
-
-   // Finish check
-   if(playerZ>=COURSE_LENGTH){
-     gameRunning=false;
-   }
- }
-
- function drawRoad(){
-   // Sky
-   ctx.fillStyle=theme.sky;
-   ctx.fillRect(0,0,W,horizonY);
-
-   // Sun
-   ctx.fillStyle='#FFD23F';
-   ctx.beginPath();
-   ctx.arc(W-140,70,30,0,Math.PI*2);
-   ctx.fill();
-
-   // Horizon ground
-   ctx.fillStyle=theme.ground;
-   ctx.fillRect(0,horizonY,W,H-horizonY);
-
-   // Perspective 3-Lane Track
-   const p0=project(-220,120,playerZ+700);
-   const p1=project(220,120,playerZ+700);
-   const pNearL=project(-240,120,playerZ+15);
-   const pNearR=project(240,120,playerZ+15);
-
-   if(p0&&p1&&pNearL&&pNearR){
-     ctx.fillStyle=theme.track;
-     ctx.beginPath();
-     ctx.moveTo(pNearL.x,pNearL.y);
-     ctx.lineTo(p0.x,p0.y);
-     ctx.lineTo(p1.x,p1.y);
-     ctx.lineTo(pNearR.x,pNearR.y);
-     ctx.closePath();
-     ctx.fill();
-
-     ctx.lineWidth=3;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.stroke();
-
-     // Lane separator dashes
-     for(let l=-1;l<=1;l+=2){
-       const laneOff=l*75;
-       for(let z=Math.floor(playerZ/120)*120;z<playerZ+700;z+=120){
-         const pl1=project(laneOff,120,z);
-         const pl2=project(laneOff,120,z+60);
-         if(pl1&&pl2){
-           ctx.strokeStyle='rgba(255,255,255,0.7)';
-           ctx.lineWidth=4*pl1.scale;
-           ctx.beginPath();
-           ctx.moveTo(pl1.x,pl1.y);
-           ctx.lineTo(pl2.x,pl2.y);
-           ctx.stroke();
-         }
-       }
-     }
-   }
- }
-
- function draw3DObject(obj){
-   const p=project(laneX[obj.lane],120,obj.z);
-   if(!p)return;
-
-   const s=p.scale;
-   const x=p.x;
-   const y=p.y;
-
-   if(obj.type==='token'){
-     // Rotating SQ Token
-     ctx.fillStyle='#FFD23F';
-     ctx.beginPath();
-     ctx.arc(x,y-30*s,18*s,0,Math.PI*2);
-     ctx.fill();
-     ctx.lineWidth=2;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.stroke();
-
-     ctx.fillStyle='#0B1F3A';
-     ctx.font=`bold ${Math.max(10,14*s)}px sans-serif`;
-     ctx.textAlign='center';
-     ctx.fillText('SQ',x,y-25*s);
-   }else if(obj.type==='hurdle'){
-     // Low Ground Hurdle
-     ctx.fillStyle='#FF6B2C';
-     ctx.fillRect(x-30*s,y-24*s,60*s,24*s);
-     ctx.strokeStyle='#0B1F3A';
-     ctx.lineWidth=2;
-     ctx.strokeRect(x-30*s,y-24*s,60*s,24*s);
-
-     ctx.fillStyle='#fff';
-     ctx.fillRect(x-24*s,y-18*s,48*s,6*s);
-   }else if(obj.type==='barrier'){
-     // Overhead Duck Barrier
-     ctx.fillStyle='#0069B4';
-     ctx.fillRect(x-40*s,y-75*s,80*s,26*s);
-     ctx.strokeStyle='#0B1F3A';
-     ctx.lineWidth=2;
-     ctx.strokeRect(x-40*s,y-75*s,80*s,26*s);
-
-     ctx.fillStyle='#C8F54A';
-     ctx.font=`bold ${Math.max(8,12*s)}px sans-serif`;
-     ctx.textAlign='center';
-     ctx.fillText('▼ DUCK ▼',x,y-58*s);
-   }
- }
-
- function drawDestinationArch(){
-   const p=project(0,120,COURSE_LENGTH);
-   if(!p)return;
-   const s=p.scale;
-   const x=p.x;
-   const y=p.y;
-
-   ctx.fillStyle='#0B1F3A';
-   ctx.fillRect(x-140*s,y-140*s,280*s,140*s);
-   ctx.fillStyle=theme.sky;
-   ctx.fillRect(x-110*s,y-120*s,220*s,120*s);
-
-   ctx.fillStyle='#C8F54A';
-   ctx.fillRect(x-130*s,y-135*s,260*s,35*s);
-   ctx.fillStyle='#0B1F3A';
-   ctx.font=`bold ${Math.max(10,18*s)}px 'DM Sans',sans-serif`;
-   ctx.textAlign='center';
-   ctx.fillText(theme.dest.toUpperCase(),x,y-112*s);
- }
-
- function drawPlayer3D(){
-   // The 3D Low-Poly Character
-   const curX=laneX[0]+(laneLerp)*(laneX[1]-laneX[0]);
-   const p=project(curX,120-playerY,playerZ+36);
-   if(!p)return;
-
-   const s=p.scale;
-   const x=p.x;
-   const y=p.y;
-
-   // Shadow
-   ctx.fillStyle='rgba(11,31,58,0.3)';
-   ctx.beginPath();
-   ctx.ellipse(x,p.y+playerY*s,28*s,8*s,0,0,Math.PI*2);
-   ctx.fill();
-
-   if(isDucking){
-     // Ducking stance
-     ctx.fillStyle='#0B1F3A';
-     ctx.fillRect(x-20*s,y-32*s,40*s,28*s);
-     ctx.fillStyle='#0069B4';
-     ctx.fillRect(x-16*s,y-28*s,32*s,22*s);
-     ctx.fillStyle='#FFD23F';
-     ctx.beginPath();
-     ctx.arc(x,y-38*s,12*s,0,Math.PI*2);
-     ctx.fill();
-   }else{
-     // Running Low-Poly Geometry
-     const leg=Math.sin(playerZ*0.12)*14*s;
-
-     // Legs
-     ctx.lineWidth=6*s;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.beginPath();
-     ctx.moveTo(x-8*s,y-24*s);
-     ctx.lineTo(x-12*s,y+leg);
-     ctx.stroke();
-
-     ctx.beginPath();
-     ctx.moveTo(x+8*s,y-24*s);
-     ctx.lineTo(x+12*s,y-leg);
-     ctx.stroke();
-
-     // Body / Jersey
-     ctx.fillStyle='#0B1F3A';
-     ctx.fillRect(x-16*s,y-58*s,32*s,36*s);
-     ctx.fillStyle='#0069B4';
-     ctx.fillRect(x-12*s,y-54*s,24*s,30*s);
-
-     // Lime Decathlon Stripe
-     ctx.fillStyle='#C8F54A';
-     ctx.fillRect(x-8*s,y-42*s,16*s,6*s);
-
-     // Head
-     ctx.fillStyle='#FFD23F';
-     ctx.beginPath();
-     ctx.arc(x,y-68*s,14*s,0,Math.PI*2);
-     ctx.fill();
-     ctx.lineWidth=2;
-     ctx.strokeStyle='#0B1F3A';
-     ctx.stroke();
-   }
- }
-
- function drawHUD(){
-   // Progress bar
-   const pct=Math.min(100,Math.round((playerZ/COURSE_LENGTH)*100));
-   ctx.fillStyle='#fff';
-   ctx.fillRect(24,20,W-48,16);
-   ctx.strokeStyle='#0B1F3A';
-   ctx.lineWidth=2;
-   ctx.strokeRect(24,20,W-48,16);
-   ctx.fillStyle='#C8F54A';
-   ctx.fillRect(26,22,(W-52)*(pct/100),12);
-
-   // Time & Target
-   ctx.fillStyle='#0B1F3A';
-   ctx.font='800 18px "DM Sans", sans-serif';
-   ctx.textAlign='left';
-   ctx.fillText(`⏱ ${elapsedSec.toFixed(1)}s`,24,62);
-
-   ctx.textAlign='right';
-   ctx.fillText(`${theme.dest} (${pct}%)`,W-24,62);
- }
-
- function loop(){
-   update();
-   ctx.clearRect(0,0,W,H);
-   drawRoad();
-
-   // Sort and draw objects from furthest to nearest
-   const visible=objects.filter(o=>o.z>playerZ&&o.z<playerZ+750).sort((a,b)=>b.z-a.z);
-   for(const obj of visible){
-     draw3DObject(obj);
-   }
-
-   drawDestinationArch();
-   drawPlayer3D();
-   drawHUD();
-
-   if(gameRunning){
-     requestAnimationFrame(loop);
-   }else{
-     cleanup();
-     ctx.fillStyle='rgba(11,31,58,0.78)';
-     ctx.fillRect(0,0,W,H);
-     ctx.fillStyle='#fff';
-     ctx.font='800 36px "Bricolage Grotesque", sans-serif';
-     ctx.textAlign='center';
-     ctx.fillText('Destination Reached! 🎉',W/2,H/2-10);
-
-     const tier=elapsedSec<18?'gold':(elapsedSec<26?'silver':'bronze');
-     const discount=tier==='gold'?20:(tier==='silver'?15:10);
-     const coupon={
-       code:`SIDEQUEST-${act.id.toUpperCase()}-${Math.random().toString(36).substring(2,8).toUpperCase()}`,
-       discount,
-       tier
-     };
-
-     S.gameScore=Math.round(1000/elapsedSec);
-     S.gameCoupon=coupon;
-
-     setTimeout(()=>{
-       S.screen='gameresult';
-       $app.innerHTML=vGameResult(elapsedSec,coupon,act.name);
-       attachGameResultHandlers();
-     },1200);
-   }
- }
-
- requestAnimationFrame(loop);
-}
-
-function attachGameResultHandlers(){
- const btn=document.getElementById('copyCoupon');
- if(btn){
-   btn.addEventListener('click',async e=>{
-     const code=btn.dataset.code;
-     try{
-       await navigator.clipboard.writeText(code);
-       toast('✓ Coupon code copied to clipboard!');
-       btn.textContent='✓ Copied to Clipboard!';
-       setTimeout(()=>{btn.textContent='📋 Copy to Clipboard'},2200);
-     }catch(err){
-       toast('Coupon code: '+code);
-     }
-   });
- }
-}
-
-const VIEWS={landing:vLanding,build:vBuild,reveal:vReveal,plan:vPlan,kit:vKit,game:vGame,done:vDone};
+const VIEWS={landing:vLanding,build:vBuild,reveal:vReveal,plan:vPlan,kit:vKit,gameresult:vGameResult,done:vDone};
 
 /* ==========================================================
    RENDER & NAVIGATION
    ========================================================== */
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',kit:'bg5.jpg',game:'bg2.jpg',gameresult:'bg5.jpg',done:'bg6.jpg'};
+const BG_MAP={landing:'bg1.jpg',build:'bg2.jpg',reveal:'bg3.jpg',plan:'bg4.jpg',kit:'bg5.jpg',gameresult:'bg5.jpg',done:'bg6.jpg'};
 
 function focusKey(el){return el&&el.dataset&&el.dataset.action?[el.dataset.action,el.dataset.key||'',el.dataset.v||'',el.dataset.i||'',el.dataset.id||''].join('|'):null}
 function draw(){
@@ -1749,16 +1957,21 @@ $app.addEventListener('click',e=>{
       if(S.step>0){S.step--;go('build')}else go('landing');break;
     case 'editanswers':S.step=0;go('build');break;
     case 'swap':swap(Number(t.dataset.i));draw();break;
-    case 'choose':S.chosen=ACTS.find(x=>x.id===t.dataset.id);initKit();track('choose',{id:S.chosen.id});go('plan');break;
+    case 'choose':S.chosen=ACTS.find(x=>x.id===t.dataset.id);initKit();S.gameResult=null;S.gameCoupon=null;track('choose',{id:S.chosen.id});go('plan');break;
     case 'backreveal':go('reveal');break;
     case 'tokit':go('kit');break;
     case 'toplan':go('plan');break;
     case 'kitset':S.kit[t.dataset.id]=t.dataset.v;draw();break;
     case 'lean':S.lean=!S.lean;S.chosen.kit.forEach(([id,tier])=>{if(tier==='o')S.kit[id]=S.lean?'later':'need'});draw();break;
     case 'startgame':
-      go('game');
-      setTimeout(initGame,120);
+      if(S.screen!=='kit')go('kit');
+      startKitDash();
       break;
+    case 'copy':{
+      const code=t.dataset.code;
+      const p=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(code):Promise.reject();
+      p.then(()=>{toast('✓ Demo code copied');t.textContent='✓ Copied'}).catch(()=>toast('Demo code: '+code));
+      break}
     case 'kitdone':
       track('kit_checkout',{need:kitTotals().need});
       go('done');
@@ -1766,7 +1979,7 @@ $app.addEventListener('click',e=>{
     case 'share':share();break;
     case 'print':window.print();break;
     case 'restart':
-      S.step=0;S.a={window:null,energy:null,vibes:[],blockers:[],company:null,budget:null};S.chosen=null;S.picks=[];S.gameCoupon=null;go('landing');break;
+      S.step=0;S.a={window:null,energy:null,vibes:[],blockers:[],company:null,budget:null};S.chosen=null;S.picks=[];S.gameCoupon=null;S.gameResult=null;go('landing');break;
   }
 });
 
@@ -1774,10 +1987,10 @@ $app.addEventListener('submit',e=>{
   if(e.target.dataset.form==='start'){e.preventDefault();S.name=(new FormData(e.target).get('nm')||'').trim();track('start');S.step=0;go('build')}
 });
 document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.all'))S.allOpen=e.target.open},true);
-document.getElementById('logo').addEventListener('click',()=>go('landing'));
+document.getElementById('logo').addEventListener('click',()=>{if(KD)KD.exit();go('landing')});
 
 /* ==========================================================
-   LOBBY MUSIC: lobbymusic.mp3
+   LOBBY MUSIC: lobbymusic.mp3 (unchanged)
    ========================================================== */
 const audioEl=document.createElement('audio');
 audioEl.id='lobbyMusic';
